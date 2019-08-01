@@ -1,4 +1,3 @@
-using Common;
 using ModelDrivenGUISystem;
 using ModelDrivenGUISystem.Factory;
 using ModelDrivenGUISystem.ValueWrapper;
@@ -7,11 +6,10 @@ using nobnak.Gist;
 using nobnak.Gist.Exhibitor;
 using nobnak.Gist.IMGUI.Scope;
 using nobnak.Gist.Scoped;
-using System.Collections;
-using System.Collections.Generic;
+using SphereOfInfluenceSys.Core;
 using UnityEngine;
 
-namespace OccupySystem {
+namespace SphereOfInfluenceSys {
 
 	public class OccupyExhibitor : AbstractExhibitorGUI {
 

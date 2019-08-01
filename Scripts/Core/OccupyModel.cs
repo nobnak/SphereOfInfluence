@@ -13,7 +13,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace OccupySystem {
+namespace SphereOfInfluenceSys.Core {
 
 	[ExecuteAlways]
 	public class OccupyModel : MonoBehaviour, IEnumerable<Occupy.PointInfo> {

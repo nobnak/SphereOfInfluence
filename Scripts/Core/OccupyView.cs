@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace OccupySystem {
+namespace SphereOfInfluenceSys.Core {
 
 	[ExecuteInEditMode]
 	public class OccupyView : MonoBehaviour {

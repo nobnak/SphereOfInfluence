@@ -1,13 +1,13 @@
 using Common;
 using Hunting;
 using nobnak.Gist;
-using nobnak.Gist.Exhibitor;
 using nobnak.Gist.Extensions.ComponentExt;
 using nobnak.Gist.Layer2;
+using SphereOfInfluenceSys.Core;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace OccupySystem {
+namespace SphereOfInfluenceSys {
 
 	[ExecuteInEditMode]
 	public class OccupyController : BasicOccupyCtrl {

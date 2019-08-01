@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
+using SphereOfInfluenceSys.Core;
 using UnityEngine;
 
-namespace OccupySystem {
+namespace SphereOfInfluenceSys {
 
 	[ExecuteInEditMode]
 	[RequireComponent(typeof(Camera))]

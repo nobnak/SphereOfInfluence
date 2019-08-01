@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-namespace OccupySystem {
+namespace SphereOfInfluenceSys.Core {
 
 	public class Occupy : System.IDisposable {
 		public const int NUMTHREADS2D = 8;
