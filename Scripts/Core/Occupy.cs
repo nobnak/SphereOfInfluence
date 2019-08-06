@@ -46,6 +46,7 @@ namespace SphereOfInfluenceSys.Core {
 		protected GPUList<int> positionIds = new GPUList<int>();
 
 		protected float lifeLimit;
+		protected Vector2 edgeDuration = new Vector2(0.5f, 0.1f);
 		protected Vector4 texelSize;
 		protected Vector3Int dispatchSize;
 
@@ -65,6 +66,13 @@ namespace SphereOfInfluenceSys.Core {
 			set {
 				if (value > 0f)
 					lifeLimit = value;
+			}
+		}
+		public Vector2 EdgeDuration {
+			get { return edgeDuration; }
+			set {
+				edgeDuration.x = Mathf.Clamp01(value.x);
+				edgeDuration.y = Mathf.Clamp01(1f - value.y);
 			}
 		}
 		public bool SetSize(int width, int height) {
@@ -122,7 +130,8 @@ namespace SphereOfInfluenceSys.Core {
 			cs.SetBuffer(ID_CalcOfSoI, PROP_POSITION_IDS, this.positionIds);
 
 			var t = CurrentTime;
-			cs.SetVector(PROP_LIFE_LIMIT, new Vector4(t - lifeLimit, t, lifeLimit, 1f / lifeLimit));
+			cs.SetVector(PROP_LIFE_LIMIT, 
+				new Vector4(edgeDuration.x, edgeDuration.y, t, 1f / lifeLimit));
 			cs.SetBuffer(ID_CalcOfSoI, PROP_LIFES, this.lifes);
 
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);

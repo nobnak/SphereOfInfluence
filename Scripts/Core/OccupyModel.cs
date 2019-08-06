@@ -164,6 +164,7 @@ namespace SphereOfInfluenceSys.Core {
 			var metrics = Matrix4x4.Scale(cameraSize);
 
 			Occupy.LifeLimit = settings.lifeLimit;
+			Occupy.EdgeDuration = settings.edgeDuration;
 			Occupy.SetSize(screenSize.x, screenSize.y);
 			Occupy.Clear();
 			for (var i = 0; i < positions.Length; i++)
@@ -283,6 +284,7 @@ namespace SphereOfInfluenceSys.Core {
 		[System.Serializable]
 		public class Settings {
 			public float lifeLimit = 10f;
+			public Vector2 edgeDuration = new Vector2(0.5f, 0.1f);
 			public float metricsScale = 0.01f;
 			public int clusters = 10;
 		}

@@ -1,3 +1,4 @@
+using FlowerArrangementSystem;
 using ModelDrivenGUISystem;
 using ModelDrivenGUISystem.Factory;
 using ModelDrivenGUISystem.ValueWrapper;
@@ -27,6 +28,7 @@ namespace SphereOfInfluenceSys {
 			validator.Validation += () => {
 				refs.toggle.Activity = data.visualizeOccupyField;
 				refs.cont.CurrentSettings = data.controllerSettings;
+				refs.recom.upperLimitScale = Mathf.Clamp(data.recomUpperLimitScale, 1f, 2f);
 			};
 		}
 		private void Update() {
@@ -81,6 +83,7 @@ namespace SphereOfInfluenceSys {
 		public class Refs {
 			public OccupyModel model;
 			public OccupyController cont;
+			public OccupyFlowerRecom recom;
 			public ObjectModal toggle;
 		}
 		[System.Serializable]
@@ -89,6 +92,9 @@ namespace SphereOfInfluenceSys {
 			public bool visualizeOccupyField;
 			[Header("Controller")]
 			public BasicOccupyCtrl.Settings controllerSettings = new BasicOccupyCtrl.Settings();
+			[Header("Recom")]
+			[Range(1f, 2f)]
+			public float recomUpperLimitScale = 2f;
 		}
 		#endregion
 	}

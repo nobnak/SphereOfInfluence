@@ -51,8 +51,8 @@ void CalcSoI (uint3 dtid : SV_DispatchThreadID) {
 		float2 pos = PositionAtIndex(i);
 		float dist = distance(pos, center);
 
-		float r = saturate((_Life_Limit.y - _Lifes[i]) * _Life_Limit.w);
-		float s = smoothstep(0.0, 0.5, r) * smoothstep(1, 0.9, r);
+		float r = saturate((_Life_Limit.z - _Lifes[i]) * _Life_Limit.w);
+		float s = smoothstep(0.0, _Life_Limit.x, r) * smoothstep(1, _Life_Limit.y, r);
 		float pow = saturate(1 - dist / (s * maxdist));
 
 		if (mp < pow) {
