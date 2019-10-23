@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace SphereOfInfluenceSys {
 
-	public class OccupyExhibitor : AbstractExhibitorGUI {
+	public class OccupyExhibitor : AbstractExhibitor {
 
 		[SerializeField]
 		protected Refs refs;
