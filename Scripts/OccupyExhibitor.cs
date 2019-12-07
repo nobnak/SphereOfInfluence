@@ -17,7 +17,7 @@ namespace SphereOfInfluenceSys {
 		[SerializeField]
 		protected Refs refs;
 		[SerializeField]
-		protected Data data = new Data();
+		protected Data vm = new Data();
 
 		protected Validator validator = new Validator();
 		protected BaseView view;
@@ -25,56 +25,66 @@ namespace SphereOfInfluenceSys {
 		#region unity
 		private void Awake() {
 			validator.Reset();
-			validator.Validation += () => {
-				refs.toggle.Activity = data.visualizeOccupyField;
-				refs.cont.CurrentSettings = data.controllerSettings;
-				refs.recom.upperLimitScale = Mathf.Clamp(data.recomUpperLimitScale, 1f, 2f);
-			};
+			validator.Validation += ()=>ReflectChangeOf(MVVMComponent.Model);
 		}
 		private void Update() {
 			validator.Validate();
 		}
 		private void OnValidate() {
-			validator.Invalidate();
+			ReflectChangeOf(MVVMComponent.ViewModel);
 		}
 		#endregion
-		#region member
-		protected BaseView CurrentView {
-			get {
-				if (view == null) {
-					var viewFactory = new SimpleViewFactory();
-					view = ClassConfigurator.GenerateClassView(new BaseValue<object>(data), viewFactory);
-				}
-				return view;
+		
+
+		#region interface
+
+		#region AbstractExhibitor
+		public override void Draw() {
+			validator.Validate();
+			using (new GUIChangedScope(() => validator.Invalidate())) {
+				CurrentView.Draw();
 			}
 		}
-		protected void ClearView() {
+		public override string SerializeToJson() {
+			validator.Validate();
+			return JsonUtility.ToJson(vm, true);
+		}
+		public override void DeserializeFromJson(string json) {
+			JsonUtility.FromJsonOverwrite(json, vm);
+			ReflectChangeOf(MVVMComponent.ViewModel);
+		}
+		public override object RawData() {
+			return vm;
+		}
+		public override void ApplyViewModelToModel() {
+			refs.toggle.Activity = vm.visualizeOccupyField;
+			refs.cont.CurrentSettings = vm.controllerSettings;
+			refs.recom.upperLimitScale = Mathf.Clamp(vm.recomUpperLimitScale, 1f, 2f);
+		}
+		public override void ResetViewModelFromModel() {
+			vm.visualizeOccupyField = refs.toggle.Activity;
+			vm.controllerSettings = refs.cont.CurrentSettings;
+			vm.recomUpperLimitScale = refs.recom.upperLimitScale;
+		}
+		public override void ResetView() {
 			if (view != null) {
 				view.Dispose();
 				view = null;
 			}
 		}
 		#endregion
-		#region AbstractExhibitorGUI
-		public override void DeserializeFromJson(string json) {
-			JsonUtility.FromJsonOverwrite(json, data);
-			ClearView();
-			validator.Validate(true);
-		}
-		public override void Draw() {
-			using (new GUIChangedScope(() => Invalidate())) {
-				CurrentView.Draw();
+
+		#endregion
+
+		#region member
+		protected BaseView CurrentView {
+			get {
+				if (view == null) {
+					var viewFactory = new SimpleViewFactory();
+					view = ClassConfigurator.GenerateClassView(new BaseValue<object>(vm), viewFactory);
+				}
+				return view;
 			}
-		}
-		public override void Invalidate() {
-			validator.Invalidate();
-		}
-		public override object RawData() {
-			return data;
-		}
-		public override string SerializeToJson() {
-			validator.Validate();
-			return JsonUtility.ToJson(data, true);
 		}
 		#endregion
 
