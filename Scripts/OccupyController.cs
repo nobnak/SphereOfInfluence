@@ -40,8 +40,10 @@ namespace SphereOfInfluenceSys {
 
 			var scannerId = sketchTexture.scanner_id;
 			var spawn = graffitiController.SpawnableFieldAt(scannerId);
-			var uv = WorldToUvPos(spawn.transform.position);
-			Replace(uv, sketchTexture);
+			if (spawn != null) {
+				var uv = WorldToUvPos(spawn.transform.position);
+				Replace(uv, sketchTexture);
+			}
 		}
 		public Vector2 WorldToUvPos(Vector3 worldPos) {
 			return cam.WorldToViewportPoint(worldPos);
