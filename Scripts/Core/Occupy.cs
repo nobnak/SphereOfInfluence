@@ -49,7 +49,7 @@ namespace SphereOfInfluenceSys.Core {
 		protected float lifeLimit;
 		protected Vector2 edgeDuration = new Vector2(0.5f, 0.1f);
 
-		protected Rect localFieldRect;
+		protected Rect viewportRect;
 		protected Vector2 worldFieldSize;
 		protected Matrix4x4 uv2FieldPos;
 
@@ -89,12 +89,12 @@ namespace SphereOfInfluenceSys.Core {
 		public void SetFieldSize(Vector2 size) {
 			SetFieldSize(size, Vector2.zero, size);
 		}
-		public void SetFieldSize(Vector2 localSize, Vector2 localOffset, Vector2 worldSize) {
-			this.localFieldRect = new Rect(localOffset, localSize);
+		public void SetFieldSize(Vector2 viewportSize, Vector2 viewportOffset, Vector2 worldSize) {
+			this.viewportRect = new Rect(viewportOffset, viewportSize);
 			this.worldFieldSize = worldSize;
 			uv2FieldPos = Matrix4x4.zero;
-			uv2FieldPos[0] = localFieldRect.width;	uv2FieldPos[12] = localFieldRect.x;
-			uv2FieldPos[5] = localFieldRect.height;	uv2FieldPos[13] = localFieldRect.y;
+			uv2FieldPos[0] = viewportRect.width;	uv2FieldPos[12] = viewportRect.x;
+			uv2FieldPos[5] = viewportRect.height;	uv2FieldPos[13] = viewportRect.y;
 			uv2FieldPos[2] = worldSize.x;
 			uv2FieldPos[7] = worldSize.y;
 		}
