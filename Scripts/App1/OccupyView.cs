@@ -2,11 +2,12 @@ using nobnak.Gist;
 using nobnak.Gist.Layer2;
 using nobnak.Gist.Layer2.Extensions;
 using nobnak.Gist.Wrapper;
+using SphereOfInfluenceSys.Core;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SphereOfInfluenceSys.Core {
+namespace SphereOfInfluenceSys.App1 {
 
 	[ExecuteInEditMode]
 	public class OccupyView : MonoBehaviour {
@@ -63,7 +64,7 @@ namespace SphereOfInfluenceSys.Core {
 		}
 
 		public void UpdateOn(Occupy occupy) {
-			block.SetTexture(OccupyVisual.ID_OCCUPY_TEX, occupy.Ids).Apply();
+			block.SetTexture(OccupyVisual.ID_OCCUPY_TEX, occupy.IdTex).Apply();
 		}
 		#endregion
 	}

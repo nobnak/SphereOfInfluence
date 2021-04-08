@@ -1,7 +1,7 @@
 using SphereOfInfluenceSys.Core;
 using UnityEngine;
 
-namespace SphereOfInfluenceSys {
+namespace SphereOfInfluenceSys.App1 {
 
 	[ExecuteInEditMode]
 	[RequireComponent(typeof(Camera))]
@@ -26,7 +26,7 @@ namespace SphereOfInfluenceSys {
 				return;
 			}
 
-			mat.SetTexture(ID_OCCUPY_TEX, occ.Occupy.Ids);
+			mat.SetTexture(ID_OCCUPY_TEX, occ.Occupy.IdTex);
 			Graphics.Blit(source, destination, mat);
 		}
 		#endregion

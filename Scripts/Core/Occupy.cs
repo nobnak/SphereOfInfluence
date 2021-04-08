@@ -4,7 +4,9 @@ using nobnak.Gist.ObjectExt;
 using nobnak.Gist.Scoped;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -19,16 +21,16 @@ namespace SphereOfInfluenceSys.Core {
 		public const GraphicsFormat FORMAT_TEX_WEIGHTS = GraphicsFormat.R32G32B32A32_SFloat;
 		public const GraphicsFormat FORMAT_TEX_IDS = GraphicsFormat.R32G32B32A32_SFloat;
 
-		public static readonly int PROP_R_IDS = Shader.PropertyToID("_RIds");
-		public static readonly int PROP_COLORS = Shader.PropertyToID("_Colors");
-		public static readonly int PROP_COLOR_PARAMS = Shader.PropertyToID("_ColorParams");
+		public static readonly int P_IdTex = Shader.PropertyToID("_IdTex");
+		public static readonly int P_IdTexR = Shader.PropertyToID("_IdTexR");
+		public static readonly int P_ColorTex = Shader.PropertyToID("_ColorTex");
 
-		public static readonly int PROP_IDS = Shader.PropertyToID("_Ids");
-		public static readonly int PROP_TEXEL_SIZE = Shader.PropertyToID("_TexelSize");
-		public static readonly int PROP_METRICS = Shader.PropertyToID("_Metrics");
+		public static readonly int PROP_COLOR_PARAMS = Shader.PropertyToID("_ColorParams");
+		public static readonly int P_ScreenTexelSize = Shader.PropertyToID("_ScreenTexelSize");
+		public static readonly int P_UV2FieldPos = Shader.PropertyToID("_UV2FieldPos");
 
 		public static readonly int PROP_LIFE_LIMIT = Shader.PropertyToID("_Life_Limit");
-		public static readonly int PROP_LIFES = Shader.PropertyToID("_Lifes");
+		public static readonly int P_BirthTime = Shader.PropertyToID("_BirthTime");
 
 		public static readonly int PROP_POSITIONS_LENGTH = Shader.PropertyToID("_Positions_Length");
 		public static readonly int PROP_POSITIONS = Shader.PropertyToID("_Positions");
@@ -37,8 +39,7 @@ namespace SphereOfInfluenceSys.Core {
 		public readonly int ID_CalcOfSoI;
 		public readonly int ID_ColorOfId;
 
-		public int Width { get; protected set; }
-		public int Height { get; protected set; }
+		public Vector2Int ScreenSize { get; protected set; }
 
 		protected ComputeShader cs;
 		protected GPUList<Vector2> positions = new GPUList<Vector2>();
@@ -47,12 +48,12 @@ namespace SphereOfInfluenceSys.Core {
 
 		protected float lifeLimit;
 		protected Vector2 edgeDuration = new Vector2(0.5f, 0.1f);
-		protected Vector4 texelSize;
-		protected Vector3Int dispatchSize;
 
-		public Occupy(int width, int height) {
-			SetSize(width, height);
+		protected Rect localFieldRect;
+		protected Vector2 worldFieldSize;
+		protected Matrix4x4 uv2FieldPos;
 
+		public Occupy() {
 			cs = Resources.Load<ComputeShader>(CS_FILE);
 
 			ID_CalcOfSoI = cs.FindKernel(K_CalcOfSoI);
@@ -60,7 +61,17 @@ namespace SphereOfInfluenceSys.Core {
 		}
 
 		#region interface
-		public RenderTexture Ids { get; protected set; }
+
+		#region IDisposable
+		public void Dispose() {
+			IdTex.DestroySelf();
+			positions.Dispose();
+			positionIds.Dispose();
+			lifes.Dispose();
+		}
+		#endregion
+
+		public RenderTexture IdTex { get; protected set; }
 		public float LifeLimit {
 			get { return lifeLimit; }
 			set {
@@ -75,34 +86,18 @@ namespace SphereOfInfluenceSys.Core {
 				edgeDuration.y = Mathf.Clamp01(1f - value.y);
 			}
 		}
-		public bool SetSize(int width, int height) {
-			if (width <= 0 || height <= 0) {
-				Debug.LogWarningFormat("Size must be larger than 0 : {0}x{1}", width, height);
-				return false;
-			}
-			var modified = Width != width || Height != height;
-
-			if (modified) {
-				ReleaseDepentsOnSize();
-
-				Width = width;
-				Height = height;
-
-				dispatchSize = new Vector3Int(
-					width.DispatchSize(NUMTHREADS2D), height.DispatchSize(NUMTHREADS2D), 1);
-				texelSize = new Vector4(1f / width, 1f / height, width, height);
-				
-				Ids = new RenderTexture(width, height, 0, FORMAT_TEX_IDS);
-				Ids.wrapMode = TextureWrapMode.Clamp;
-				Ids.filterMode = FilterMode.Point;
-				Ids.enableRandomWrite = true;
-				Ids.Create();
-
-			}
-
-			return modified;
+		public void SetFieldSize(Vector2 size) {
+			SetFieldSize(size, Vector2.zero, size);
 		}
-
+		public void SetFieldSize(Vector2 localSize, Vector2 localOffset, Vector2 worldSize) {
+			this.localFieldRect = new Rect(localOffset, localSize);
+			this.worldFieldSize = worldSize;
+			uv2FieldPos = Matrix4x4.zero;
+			uv2FieldPos[0] = localFieldRect.width;	uv2FieldPos[12] = localFieldRect.x;
+			uv2FieldPos[5] = localFieldRect.height;	uv2FieldPos[13] = localFieldRect.y;
+			uv2FieldPos[2] = worldSize.x;
+			uv2FieldPos[7] = worldSize.y;
+		}
 		public int Add(int id, Vector2 normPos, float life = -1f) {
 			var count = positions.Count;
 			positionIds.Add(id);
@@ -119,11 +114,16 @@ namespace SphereOfInfluenceSys.Core {
 			positions.Clear();
 			lifes.Clear();
 		}
-		public void Update(Matrix4x4 metrics) {
-			cs.SetVector(PROP_TEXEL_SIZE, texelSize);
-			cs.SetMatrix(PROP_METRICS, metrics);
+		public void Update(Vector2Int screenSize) {
+			if (screenSize.x < 4 || screenSize.y < 4) {
+				Debug.LogWarning($"Size too small : {screenSize}");
+			}
+			ScreenSize = screenSize;
 
-			cs.SetTexture(ID_CalcOfSoI, PROP_IDS, Ids);
+			SetCommonParams();
+
+			CheckIdTex(screenSize);
+			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
 
 			cs.SetInt(PROP_POSITIONS_LENGTH, positions.Count);
 			cs.SetBuffer(ID_CalcOfSoI, PROP_POSITIONS, this.positions);
@@ -132,37 +132,60 @@ namespace SphereOfInfluenceSys.Core {
 			var t = CurrentTime;
 			cs.SetVector(PROP_LIFE_LIMIT, 
 				new Vector4(edgeDuration.x, edgeDuration.y, t, 1f / lifeLimit));
-			cs.SetBuffer(ID_CalcOfSoI, PROP_LIFES, this.lifes);
+			cs.SetBuffer(ID_CalcOfSoI, P_BirthTime, this.lifes);
 
+			var dispatchSize = GetDispatchSize(screenSize);
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 		}
-		public void Visualize(RenderTexture colors, int clusters = 10, float offset = 0.5f) {
+		public void Visualize(RenderTexture colorTex, int clusters = 10, float offset = 0.5f) {
+			SetCommonParams();
+
 			cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / clusters, offset, 0, 0));
 
-			cs.SetTexture(ID_ColorOfId, PROP_R_IDS, Ids);
-			cs.SetTexture(ID_ColorOfId, PROP_COLORS, colors);
+			cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
+			cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
 
+			var dispatchSize = GetDispatchSize(ScreenSize);
 			cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 		}
 		#endregion
+
+		#region member
+		protected void SetCommonParams() {
+			cs.SetMatrix(P_UV2FieldPos, uv2FieldPos);
+
+			var screenTexelSize = GetScreenTexelSize(ScreenSize);
+			cs.SetVector(P_ScreenTexelSize, screenTexelSize);
+		}
+		private void CheckIdTex(Vector2Int screenSize) {
+			if (IdTex == null || IdTex.width != screenSize.x || IdTex.height != screenSize.y) {
+				IdTex.DestroySelf();
+				IdTex = new RenderTexture(screenSize.x, screenSize.y, 0, FORMAT_TEX_IDS);
+				IdTex.wrapMode = TextureWrapMode.Clamp;
+				IdTex.filterMode = FilterMode.Point;
+				IdTex.enableRandomWrite = true;
+				IdTex.Create();
+			}
+		}
+		#endregion
+
 		#region static
 		public static float CurrentTime {
 			get { return Time.timeSinceLevelLoad; }
 		}
-		#endregion
-
-		#region IDisposable
-		public void Dispose() {
-			ReleaseDepentsOnSize();
-			positions.Dispose();
-			positionIds.Dispose();
-			lifes.Dispose();
+		public static Vector3Int GetDispatchSize(Vector2Int screenSize) {
+			return new Vector3Int(
+				screenSize.x.DispatchSize(NUMTHREADS2D), screenSize.y.DispatchSize(NUMTHREADS2D), 1);
 		}
-
-		private void ReleaseDepentsOnSize() {
-			Ids.DestroySelf();
+		public static Vector4 GetScreenTexelSize(Vector2Int screenSize) {
+			return new Vector4(
+				1f / screenSize.x,
+				1f / screenSize.y,
+				screenSize.x,
+				screenSize.y);
 		}
 		#endregion
+
 
 		#region classes
 		[StructLayout(LayoutKind.Sequential)]
@@ -177,6 +200,16 @@ namespace SphereOfInfluenceSys.Core {
 				this.life = life;
 			}
 			public PointInfo(int id, Vector2 pos) : this(id, pos, CurrentTime) { }
+
+			#region interface
+
+			#region object
+			public override string ToString() {
+				return $"{GetType().Name} : id={id}, position={position}, life={life}";
+			}
+			#endregion
+
+			#endregion
 		}
 		#endregion
 	}

@@ -3,6 +3,7 @@ using nobnak.Gist.Events;
 using nobnak.Gist.Exhibitor;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
+using SphereOfInfluenceSys.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SphereOfInfluenceSys.Core {
+namespace SphereOfInfluenceSys.App1 {
 
 	[ExecuteAlways]
 	public class OccupyModel : MonoBehaviour, IEnumerable<Occupy.PointInfo> {
@@ -46,7 +47,7 @@ namespace SphereOfInfluenceSys.Core {
 		}
 
 		private void OnEnable() {
-			Occupy = new Occupy(4, 4);
+			Occupy = new Occupy();
 			cworker = StartCoroutine(Worker());
 		}
 		private void OnDisable() {
@@ -127,7 +128,7 @@ namespace SphereOfInfluenceSys.Core {
 				UpdateOccupy();
 				Visualize();
 
-				CpuTexIds.Source = Occupy.Ids;
+				CpuTexIds.Source = Occupy.IdTex;
 				yield return CpuTexIds.StartCoroutine();
 			}
 		}
@@ -155,21 +156,20 @@ namespace SphereOfInfluenceSys.Core {
 		}
 		private void UpdateOccupy() {
 			var aspect = (float)screenSize.x / screenSize.y;
-			var orthoSize = settings.metricsScale;
-			var cameraSize = new Vector3(aspect * orthoSize, orthoSize, 1f);
+			var scale = settings.metricsScale;
+			var fieldSize = new Vector2(aspect * scale, scale);
 
-			var positions = points.Select(p => p.position).ToArray();
+			var positions = points.Select(p => Vector2.Scale(p.position, fieldSize)).ToArray();
 			var ids = points.Select(p => p.id).ToArray();
 			var lifes = points.Select(p => p.life).ToArray();
-			var metrics = Matrix4x4.Scale(cameraSize);
 
 			Occupy.LifeLimit = settings.lifeLimit;
 			Occupy.EdgeDuration = settings.edgeDuration;
-			Occupy.SetSize(screenSize.x, screenSize.y);
+			Occupy.SetFieldSize(fieldSize);
 			Occupy.Clear();
 			for (var i = 0; i < positions.Length; i++)
 				Occupy.Add(ids[i], positions[i], lifes[i]);
-			Occupy.Update(metrics);
+			Occupy.Update(screenSize);
 		}
 		#endregion
 

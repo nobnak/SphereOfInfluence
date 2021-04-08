@@ -10,12 +10,12 @@
 static const float EPS = 1.0e-6;
 static const float INF = 1.0e6;
 
-Texture2D<float4> _RIds;
-RWTexture2D<float4> _Ids;
-RWTexture2D<float4> _Colors;
+Texture2D<float4> _IdTexR;
+RWTexture2D<float4> _IdTex;
+RWTexture2D<float4> _ColorTex;
 
-float4 _TexelSize;
-float4x4 _Metrics;
+float4 _ScreenTexelSize;
+float4x4 _UV2FieldPos;
 float4 _ColorParams;
 
 uint _Positions_Length;
@@ -23,17 +23,17 @@ StructuredBuffer<float2> _Positions;
 StructuredBuffer<int> _PositionIDs;
 
 float4 _Life_Limit;
-StructuredBuffer<float> _Lifes;
+StructuredBuffer<float> _BirthTime;
 
-float2 PositionFromUV(float2 uv) {
-	return mul(_Metrics, float4(uv, 0, 1)).xy;
+float2 LocalPosFromUV(float2 uv) {
+	return mul(_UV2FieldPos, float4(uv, 0, 1)).xy;
 }
-float2 PositionAtIndex(int index) {
-	return PositionFromUV(_Positions[index]);
+float2 WorldPosFromUV(float2 uv) {
+	return mul(_UV2FieldPos, float4(uv, 0, 1)).zw;
 }
-float2 PositionAtPixel(uint2 pixelPos) {
-	float2 uv = (pixelPos.xy + 0.5) * _TexelSize.xy;
-	return PositionFromUV(uv);
+float2 WorldPosFromPixel(uint2 pixelPos) {
+	float2 uv = (pixelPos.xy + 0.5) * _ScreenTexelSize.xy;
+	return WorldPosFromUV(uv);
 }
 
 
@@ -44,14 +44,14 @@ void CalcSoI (uint3 dtid : SV_DispatchThreadID) {
 	float md = 3.402823466e+38F;
 	float mp = 0;
 
-	float2 center = PositionAtPixel(dtid.xy);
-	float maxdist = length(mul(_Metrics, float4(1, 1, 0, 0)));
+	float2 center = WorldPosFromPixel(dtid.xy);
+	float maxdist = length(mul(_UV2FieldPos, float4(1, 1, 0, 0)).zw);
 
 	for (uint i = 0; i < _Positions_Length; i++) {
-		float2 pos = PositionAtIndex(i);
+		float2 pos = _Positions[i];
 		float dist = distance(pos, center);
 
-		float r = saturate((_Life_Limit.z - _Lifes[i]) * _Life_Limit.w);
+		float r = saturate((_Life_Limit.z - _BirthTime[i]) * _Life_Limit.w);
 		float s = smoothstep(0.0, _Life_Limit.x, r) * smoothstep(1, _Life_Limit.y, r);
 		float pow = saturate(1 - dist / (s * maxdist));
 
@@ -65,15 +65,15 @@ void CalcSoI (uint3 dtid : SV_DispatchThreadID) {
 	if (mi >= 0) {
 		mid = _PositionIDs[mi];
 	}
-	_Ids[dtid.xy] = mid;
+	_IdTex[dtid.xy] = mid;
 }
 
 
 
 [numthreads(NTHREADS2D, NTHREADS2D, 1)]
 void ColorOfID (uint3 dtid : SV_DispatchThreadID) {
-	int id = _RIds[dtid.xy].x;
+	int id = _IdTexR[dtid.xy].x;
 	float h = frac(_ColorParams.x * (id + 1) + _ColorParams.y);
 	float4 c = float4(HSV2RGB(float3(h, 1, 1)), 1);
-	_Colors[dtid.xy] = c;
+	_ColorTex[dtid.xy] = c;
 }

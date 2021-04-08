@@ -1,10 +1,11 @@
 using nobnak.Gist;
 using nobnak.Gist.ObjectExt;
+using SphereOfInfluenceSys.Core;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SphereOfInfluenceSys.Core {
+namespace SphereOfInfluenceSys.App1 {
 
 	public class BasicOccupyCtrl : MonoBehaviour {
 
