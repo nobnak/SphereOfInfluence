@@ -3,7 +3,9 @@ using nobnak.Gist.Events;
 using nobnak.Gist.Exhibitor;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
+using nobnak.Gist.Statistics;
 using SphereOfInfluenceSys.Core;
+using SphereOfInfluenceSys.Extensions.TimeExt;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -148,7 +150,7 @@ namespace SphereOfInfluenceSys.App1 {
 		}
 
 		private void ClearUnusedPoints() {
-			var oldlife = Occupy.CurrentTime - settings.lifeLimit;
+			var oldlife = TimeExtension.RelativeSeconds - settings.lifeLimit;
 			for (var i = points.Count - 1; i >= 0; i--) {
 				if (points[i].life < oldlife)
 					points.RemoveAt(i);

@@ -2,6 +2,7 @@ using nobnak.Gist.Extensions.GPUExt;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
 using nobnak.Gist.Scoped;
+using SphereOfInfluenceSys.Extensions.TimeExt;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,7 +103,7 @@ namespace SphereOfInfluenceSys.Core {
 			var count = positions.Count;
 			positionIds.Add(id);
 			positions.Add(normPos);
-			lifes.Add(life >= 0f ? life : CurrentTime);
+			lifes.Add(life >= 0f ? life : TimeExtension.RelativeSeconds);
 			return count;
 		}
 
@@ -129,7 +130,7 @@ namespace SphereOfInfluenceSys.Core {
 			cs.SetBuffer(ID_CalcOfSoI, PROP_POSITIONS, this.positions);
 			cs.SetBuffer(ID_CalcOfSoI, PROP_POSITION_IDS, this.positionIds);
 
-			var t = CurrentTime;
+			var t = TimeExtension.RelativeSeconds;
 			cs.SetVector(PROP_LIFE_LIMIT, 
 				new Vector4(edgeDuration.x, edgeDuration.y, t, 1f / lifeLimit));
 			cs.SetBuffer(ID_CalcOfSoI, P_BirthTime, this.lifes);
@@ -170,9 +171,7 @@ namespace SphereOfInfluenceSys.Core {
 		#endregion
 
 		#region static
-		public static float CurrentTime {
-			get { return Time.timeSinceLevelLoad; }
-		}
+
 		public static Vector3Int GetDispatchSize(Vector2Int screenSize) {
 			return new Vector3Int(
 				screenSize.x.DispatchSize(NUMTHREADS2D), screenSize.y.DispatchSize(NUMTHREADS2D), 1);
@@ -199,7 +198,7 @@ namespace SphereOfInfluenceSys.Core {
 				this.position = pos;
 				this.life = life;
 			}
-			public PointInfo(int id, Vector2 pos) : this(id, pos, CurrentTime) { }
+			public PointInfo(int id, Vector2 pos) : this(id, pos, TimeExtension.RelativeSeconds) { }
 
 			#region interface
 
