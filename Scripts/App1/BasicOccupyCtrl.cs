@@ -40,7 +40,7 @@ namespace SphereOfInfluenceSys.App1 {
 				if (Input.GetMouseButtonDown(0)) {
 					var uv = cam.ScreenToViewportPoint(Input.mousePosition);
 					currid = (++currid) % settings.modelSettings.clusters;
-					model.Add(new Occupy.PointInfo(currid, uv));
+					model.Add(new Occupy.Region(currid, uv));
 				}
 				if (Input.GetMouseButtonDown(1)) {
 					var uv = cam.ScreenToViewportPoint(Input.mousePosition);

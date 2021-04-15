@@ -31,11 +31,9 @@ namespace SphereOfInfluenceSys.Core {
 		public static readonly int P_UV2FieldPos = Shader.PropertyToID("_UV2FieldPos");
 
 		public static readonly int PROP_LIFE_LIMIT = Shader.PropertyToID("_Life_Limit");
-		public static readonly int P_BirthTime = Shader.PropertyToID("_BirthTime");
 
-		public static readonly int PROP_POSITIONS_LENGTH = Shader.PropertyToID("_Positions_Length");
-		public static readonly int PROP_POSITIONS = Shader.PropertyToID("_Positions");
-		public static readonly int PROP_POSITION_IDS = Shader.PropertyToID("_PositionIDs");
+		public static readonly int P_Regions_Length = Shader.PropertyToID("_Regions_Length");
+		public static readonly int P_Regions = Shader.PropertyToID("_Regions");
 
 		public readonly int ID_CalcOfSoI;
 		public readonly int ID_ColorOfId;
@@ -43,9 +41,7 @@ namespace SphereOfInfluenceSys.Core {
 		public Vector2Int ScreenSize { get; protected set; }
 
 		protected ComputeShader cs;
-		protected GPUList<Vector2> positions = new GPUList<Vector2>();
-		protected GPUList<float> lifes = new GPUList<float>();
-		protected GPUList<int> positionIds = new GPUList<int>();
+		protected GPUList<Region> regions = new GPUList<Region>();
 
 		protected float lifeLimit;
 		protected Vector2 edgeDuration = new Vector2(0.5f, 0.1f);
@@ -66,9 +62,7 @@ namespace SphereOfInfluenceSys.Core {
 		#region IDisposable
 		public void Dispose() {
 			IdTex.DestroySelf();
-			positions.Dispose();
-			positionIds.Dispose();
-			lifes.Dispose();
+			regions.Dispose();
 		}
 		#endregion
 
@@ -100,20 +94,18 @@ namespace SphereOfInfluenceSys.Core {
 			uv2FieldPos[7] = worldSize.y;
 		}
 		public int Add(int id, Vector2 normPos, float life = -1f) {
-			var count = positions.Count;
-			positionIds.Add(id);
-			positions.Add(normPos);
-			lifes.Add(life >= 0f ? life : TimeExtension.RelativeSeconds);
-			return count;
+			var count = regions.Count;
+			life = (life >= 0f ? life : TimeExtension.RelativeSeconds);
+			return Add(new Region(id, normPos, life));
 		}
 
-		public int Add(PointInfo pi) {
-			return Add(pi.id, pi.position, pi.life);
+		public int Add(Region pi) {
+			var count = regions.Count;
+			regions.Add(pi);
+			return count;
 		}
 		public void Clear() {
-			positionIds.Clear();
-			positions.Clear();
-			lifes.Clear();
+			regions.Clear();
 		}
 		public void Update(Vector2Int screenSize) {
 			if (screenSize.x < 4 || screenSize.y < 4) {
@@ -126,14 +118,12 @@ namespace SphereOfInfluenceSys.Core {
 			CheckIdTex(screenSize);
 			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
 
-			cs.SetInt(PROP_POSITIONS_LENGTH, positions.Count);
-			cs.SetBuffer(ID_CalcOfSoI, PROP_POSITIONS, this.positions);
-			cs.SetBuffer(ID_CalcOfSoI, PROP_POSITION_IDS, this.positionIds);
+			cs.SetInt(P_Regions_Length, regions.Count);
+			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
 
 			var t = TimeExtension.RelativeSeconds;
 			cs.SetVector(PROP_LIFE_LIMIT, 
 				new Vector4(edgeDuration.x, edgeDuration.y, t, 1f / lifeLimit));
-			cs.SetBuffer(ID_CalcOfSoI, P_BirthTime, this.lifes);
 
 			var dispatchSize = GetDispatchSize(screenSize);
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
@@ -188,23 +178,23 @@ namespace SphereOfInfluenceSys.Core {
 
 		#region classes
 		[StructLayout(LayoutKind.Sequential)]
-		public class PointInfo {
+		public struct Region {
 			public readonly int id;
+			public readonly float birthTime;
 			public readonly Vector2 position;
-			public readonly float life;
 
-			public PointInfo(int id, Vector2 pos, float life) {
+			public Region(int id, Vector2 pos, float birthTime) {
 				this.id = id;
 				this.position = pos;
-				this.life = life;
+				this.birthTime = birthTime;
 			}
-			public PointInfo(int id, Vector2 pos) : this(id, pos, TimeExtension.RelativeSeconds) { }
+			public Region(int id, Vector2 pos) : this(id, pos, TimeExtension.RelativeSeconds) { }
 
 			#region interface
 
 			#region object
 			public override string ToString() {
-				return $"{GetType().Name} : id={id}, position={position}, life={life}";
+				return $"{GetType().Name} : id={id}, position={position}, birth_time={birthTime}";
 			}
 			#endregion
 

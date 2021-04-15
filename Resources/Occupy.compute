@@ -18,12 +18,10 @@ float4 _ScreenTexelSize;
 float4x4 _UV2FieldPos;
 float4 _ColorParams;
 
-uint _Positions_Length;
-StructuredBuffer<float2> _Positions;
-StructuredBuffer<int> _PositionIDs;
+uint _Regions_Length;
+StructuredBuffer<Region> _Regions;
 
 float4 _Life_Limit;
-StructuredBuffer<float> _BirthTime;
 
 float2 LocalPosFromUV(float2 uv) {
 	return mul(_UV2FieldPos, float4(uv, 0, 1)).xy;
@@ -47,11 +45,14 @@ void CalcSoI (uint3 dtid : SV_DispatchThreadID) {
 	float2 center = WorldPosFromPixel(dtid.xy);
 	float maxdist = length(mul(_UV2FieldPos, float4(1, 1, 0, 0)).zw);
 
-	for (uint i = 0; i < _Positions_Length; i++) {
-		float2 pos = _Positions[i];
+	for (uint i = 0; i < _Regions_Length; i++) {
+		Region reg = _Regions[i];
+		float2 pos = reg.position;
+		float birthTime = reg.birthTime;
+
 		float dist = distance(pos, center);
 
-		float r = saturate((_Life_Limit.z - _BirthTime[i]) * _Life_Limit.w);
+		float r = saturate((_Life_Limit.z - birthTime) * _Life_Limit.w);
 		float s = smoothstep(0.0, _Life_Limit.x, r) * smoothstep(1, _Life_Limit.y, r);
 		float pow = saturate(1 - dist / (s * maxdist));
 
@@ -63,7 +64,7 @@ void CalcSoI (uint3 dtid : SV_DispatchThreadID) {
 
 	int mid = -1;
 	if (mi >= 0) {
-		mid = _PositionIDs[mi];
+		mid = _Regions[mi].id;
 	}
 	_IdTex[dtid.xy] = mid;
 }

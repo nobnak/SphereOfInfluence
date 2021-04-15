@@ -19,7 +19,7 @@ using UnityEngine.Events;
 namespace SphereOfInfluenceSys.App1 {
 
 	[ExecuteAlways]
-	public class OccupyModel : MonoBehaviour, IEnumerable<Occupy.PointInfo> {
+	public class OccupyModel : MonoBehaviour, IEnumerable<Occupy.Region> {
 
 		public static readonly Vector2Int DEFAULT_SCREEN_SIZE = new Vector2Int(4, 4);
 
@@ -29,7 +29,7 @@ namespace SphereOfInfluenceSys.App1 {
 		[SerializeField]
 		protected Settings settings = new Settings();
 		[SerializeField]
-		protected List<Occupy.PointInfo> points = new List<Occupy.PointInfo>();
+		protected List<Occupy.Region> points = new List<Occupy.Region>();
 
 		public Occupy Occupy { get; protected set; }
 		public AsyncCPUTexture<Vector4> CpuTexIds { get; protected set; } = new AsyncCPUTexture<Vector4>();
@@ -70,7 +70,7 @@ namespace SphereOfInfluenceSys.App1 {
 
 		#region interface
 		#region IEnumerable
-		public IEnumerator<Occupy.PointInfo> GetEnumerator() {
+		public IEnumerator<Occupy.Region> GetEnumerator() {
 			foreach (var p in points)
 				yield return p;
 		}
@@ -102,7 +102,7 @@ namespace SphereOfInfluenceSys.App1 {
 			var v = CpuTexIds[pos][0];
 			id = (int)v;
 		}
-		public void Add(Occupy.PointInfo pi) {
+		public void Add(Occupy.Region pi) {
 			Validator.Invalidate();
 			points.Add(pi);
 		}
@@ -152,7 +152,7 @@ namespace SphereOfInfluenceSys.App1 {
 		private void ClearUnusedPoints() {
 			var oldlife = TimeExtension.RelativeSeconds - settings.lifeLimit;
 			for (var i = points.Count - 1; i >= 0; i--) {
-				if (points[i].life < oldlife)
+				if (points[i].birthTime < oldlife)
 					points.RemoveAt(i);
 			}
 		}
@@ -163,7 +163,7 @@ namespace SphereOfInfluenceSys.App1 {
 
 			var positions = points.Select(p => Vector2.Scale(p.position, fieldSize)).ToArray();
 			var ids = points.Select(p => p.id).ToArray();
-			var lifes = points.Select(p => p.life).ToArray();
+			var lifes = points.Select(p => p.birthTime).ToArray();
 
 			Occupy.LifeLimit = settings.lifeLimit;
 			Occupy.EdgeDuration = settings.edgeDuration;

@@ -3,6 +3,12 @@
 
 static const float DEF_SIGMA = 0.2;
 
+struct Region {
+	int id;
+	float birthTime;
+	float2 position;
+};
+
 float4 SoftMax(float4 w, float sigma = DEF_SIGMA) {
 	float wmax = max(max(w.x, w.y), max(w.z, w.w));
 	float4 ew = exp((w - wmax) / sigma);
