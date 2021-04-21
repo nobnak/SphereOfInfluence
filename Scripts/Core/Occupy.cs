@@ -95,7 +95,7 @@ namespace SphereOfInfluenceSys.Core {
 		}
 		public int Add(int id, Vector2 normPos, float life = -1f) {
 			var count = regions.Count;
-			life = (life >= 0f ? life : TimeExtension.RelativeSeconds);
+			life = (life >= 0f ? life : TimeExtension.CurrRelativeSeconds);
 			return Add(new Region(id, normPos, life));
 		}
 
@@ -121,7 +121,7 @@ namespace SphereOfInfluenceSys.Core {
 			cs.SetInt(P_Regions_Length, regions.Count);
 			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
 
-			var t = TimeExtension.RelativeSeconds;
+			var t = TimeExtension.CurrRelativeSeconds;
 			cs.SetVector(PROP_LIFE_LIMIT, 
 				new Vector4(edgeDuration.x, edgeDuration.y, t, 1f / lifeLimit));
 
@@ -177,6 +177,7 @@ namespace SphereOfInfluenceSys.Core {
 
 
 		#region classes
+		[System.Serializable]
 		[StructLayout(LayoutKind.Sequential)]
 		public struct Region {
 			public readonly int id;
@@ -188,16 +189,62 @@ namespace SphereOfInfluenceSys.Core {
 				this.position = pos;
 				this.birthTime = birthTime;
 			}
-			public Region(int id, Vector2 pos) : this(id, pos, TimeExtension.RelativeSeconds) { }
+			public Region(int id, Vector2 pos) 
+				: this(id, pos, TimeExtension.CurrRelativeSeconds) { }
 
 			#region interface
 
 			#region object
 			public override string ToString() {
-				return $"{GetType().Name} : id={id}, position={position}, birth_time={birthTime}";
+				return $"{GetType().Name} : "
+					+ $"id={id}, "
+					+ $"position={position}, "
+					+ $"birth_time={birthTime}";
 			}
 			#endregion
 
+			#endregion
+		}
+		[System.Serializable]
+		public struct NetworkRegion {
+			public readonly int id;
+			public readonly long birthTimeTick;
+			public readonly Vector2 position;
+
+			public NetworkRegion(int id, Vector2 position, long tick) {
+				this.id = id;
+				this.position = position;
+				this.birthTimeTick = tick;
+			}
+			public NetworkRegion(int id, Vector2 position)
+				: this(id, position, TimeExtension.CurrTick) { }
+
+			#region interface
+
+			#region object
+			public override string ToString() {
+				return $"{GetType().Name} : "
+					+ $"id={id}, "
+					+ $"time={birthTimeTick.RelativeSeconds()} ({birthTimeTick.ToDateTime()}), "
+					+ $"pos={position}";
+			}
+			#endregion
+
+			#endregion
+
+			#region static
+			public static implicit operator Region(NetworkRegion hires) {
+				return new Region(
+					hires.id,
+					hires.position,
+					hires.birthTimeTick.RelativeSeconds());
+			}
+			public static explicit operator NetworkRegion(Region r) {
+				return new NetworkRegion(
+					r.id,
+					r.position,
+					r.birthTime.TickFromRelativeSeconds());
+			}
 			#endregion
 		}
 		#endregion

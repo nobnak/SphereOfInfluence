@@ -150,7 +150,7 @@ namespace SphereOfInfluenceSys.App1 {
 		}
 
 		private void ClearUnusedPoints() {
-			var oldlife = TimeExtension.RelativeSeconds - settings.lifeLimit;
+			var oldlife = TimeExtension.CurrRelativeSeconds - settings.lifeLimit;
 			for (var i = points.Count - 1; i >= 0; i--) {
 				if (points[i].birthTime < oldlife)
 					points.RemoveAt(i);
