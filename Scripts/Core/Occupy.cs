@@ -1,3 +1,4 @@
+using MessagePack;
 using nobnak.Gist.Extensions.GPUExt;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
@@ -203,48 +204,6 @@ namespace SphereOfInfluenceSys.Core {
 			}
 			#endregion
 
-			#endregion
-		}
-		[System.Serializable]
-		public struct NetworkRegion {
-			public readonly int id;
-			public readonly long birthTimeTick;
-			public readonly Vector2 position;
-
-			public NetworkRegion(int id, Vector2 position, long tick) {
-				this.id = id;
-				this.position = position;
-				this.birthTimeTick = tick;
-			}
-			public NetworkRegion(int id, Vector2 position)
-				: this(id, position, TimeExtension.CurrTick) { }
-
-			#region interface
-
-			#region object
-			public override string ToString() {
-				return $"{GetType().Name} : "
-					+ $"id={id}, "
-					+ $"time={birthTimeTick.RelativeSeconds()} ({birthTimeTick.ToDateTime()}), "
-					+ $"pos={position}";
-			}
-			#endregion
-
-			#endregion
-
-			#region static
-			public static implicit operator Region(NetworkRegion hires) {
-				return new Region(
-					hires.id,
-					hires.position,
-					hires.birthTimeTick.RelativeSeconds());
-			}
-			public static explicit operator NetworkRegion(Region r) {
-				return new NetworkRegion(
-					r.id,
-					r.position,
-					r.birthTime.TickFromRelativeSeconds());
-			}
 			#endregion
 		}
 		#endregion
