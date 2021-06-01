@@ -2,12 +2,10 @@ using CloudStructures;
 using CloudStructures.Converters;
 using CloudStructures.Structures;
 using SphereOfInfluenceSys.App2.Structures;
-using SphereOfInfluenceSys.Extensions.TimeExt;
 using StackExchange.Redis;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using WeSyncSys.Extensions.TimeExt;
 
 namespace SphereOfInfluenceSys.App2 {
 
@@ -50,6 +48,7 @@ namespace SphereOfInfluenceSys.App2 {
 				TaskGet();
 
 			});
+
 		}
 		private void OnDisable() {
 			if (subsc != null) {
@@ -88,7 +87,7 @@ namespace SphereOfInfluenceSys.App2 {
 		}
 		protected void TaskPub() {
 			try {
-				subsc.Publish(CH_SHARED_DATA_UPDATE, TimeExtension.CurrTick);
+				subsc.Publish(CH_SHARED_DATA_UPDATE, TimeExtension.CurrTick, CommandFlags.FireAndForget);
 			} catch(System.Exception e) {
 				Debug.LogWarning(e);
 			}

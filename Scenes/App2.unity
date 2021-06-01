@@ -121,6 +121,57 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &836007508
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 836007509}
+  - component: {fileID: 836007510}
+  m_Layer: 0
+  m_Name: WeSync
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &836007509
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836007508}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1162086845}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &836007510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836007508}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51147d03a3f861b4aa7e3f7d29387807, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiName: 
+  targetCamera: {fileID: 1421941231}
+  events:
+    Changed:
+      m_PersistentCalls:
+        m_Calls: []
+  tuner:
+    localUv: {x: 1, y: 1, z: 0, w: 0}
 --- !u!1 &906956378
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,8 +233,10 @@ MonoBehaviour:
   settings:
     debug: 1
     world:
-      worldSize: {x: 1, y: 1}
-      duration: 15
+      worldSize_x: 1
+      worldSize_y: 1
+      duration: 5
+      WorldSize: {x: 1, y: 1}
   workingdata:
     regions: []
 --- !u!1 &1162086844
@@ -216,6 +269,7 @@ Transform:
   - {fileID: 906956379}
   - {fileID: 1191139445}
   - {fileID: 1766415191}
+  - {fileID: 836007509}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -262,6 +316,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e5abbe75c6fd2f4dbabde88e947014e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetCam: {fileID: 1421941231}
+  wesync: {fileID: 0}
 --- !u!1 &1421941229
 GameObject:
   m_ObjectHideFlags: 0
@@ -273,6 +329,7 @@ GameObject:
   - component: {fileID: 1421941232}
   - component: {fileID: 1421941231}
   - component: {fileID: 1421941230}
+  - component: {fileID: 1421941233}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -345,6 +402,44 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1421941233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421941229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5ae680e760b6c04db8fbdd35f9c7ebb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  events:
+    OnSetEnabled:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 836007510}
+          m_MethodName: ListenCamera
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 1
+        - m_Target: {fileID: 1191139446}
+          m_MethodName: ListenCamera
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 1
 --- !u!1 &1766415190
 GameObject:
   m_ObjectHideFlags: 0

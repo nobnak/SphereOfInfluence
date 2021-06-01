@@ -1,10 +1,8 @@
 using MessagePack;
-using SphereOfInfluenceSys.Extensions.TimeExt;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
+using WeSyncSys.Extensions.TimeExt;
 using static SphereOfInfluenceSys.Core.Occupy;
 
 namespace SphereOfInfluenceSys.App2.Structures {
@@ -32,20 +30,19 @@ namespace SphereOfInfluenceSys.App2.Structures {
 	}
 
 	[System.Serializable]
+	[StructLayout(LayoutKind.Explicit)]
 	[MessagePackObject(keyAsPropertyName: true)]
 	public class WorldSetttings {
-		public float worldSize_x;
-		public float worldSize_y;
+		[FieldOffset(0)]
+		public float worldSize_x = 1f;
+		[FieldOffset(4)]
+		public float worldSize_y = 1f;
+		[FieldOffset(8)]
 		public float duration = 15f;
 
+		[FieldOffset(0)]
 		[IgnoreMember]
-		public Vector2 WorldSize {
-			get => new Vector2(worldSize_x, worldSize_y);
-			set {
-				worldSize_x = value.x;
-				worldSize_y = value.y;
-			}
-		}
+		public Vector2 WorldSize;
 	}
 
 	[System.Serializable]
@@ -62,16 +59,16 @@ namespace SphereOfInfluenceSys.App2.Structures {
 		public readonly float position_y;
 
 		[FieldOffset(12)]
-		[IgnoreMember]
-		public readonly Vector2 position;
+		public readonly Vector2 Position;
 
 		[SerializationConstructor]
 		public NetworkRegion(int id, float position_x, float position_y, long tick) {
 			this.id = id;
-			this.position = default;
+			this.tick = tick;
+
+			this.Position = default;
 			this.position_x = position_x;
 			this.position_y = position_y;
-			this.tick = tick;
 		}
 		public NetworkRegion(int id, Vector2 position, long tick)
 			: this(id, position.x, position.y, tick) { }
@@ -85,7 +82,7 @@ namespace SphereOfInfluenceSys.App2.Structures {
 			return $"{GetType().Name} : "
 				+ $"id={id}, "
 				+ $"time={tick.RelativeSeconds()} ({tick.ToDateTime()}), "
-				+ $"pos={position}";
+				+ $"pos={Position}";
 		}
 		#endregion
 
@@ -95,7 +92,7 @@ namespace SphereOfInfluenceSys.App2.Structures {
 		public static implicit operator Region(NetworkRegion hires) {
 			return new Region(
 				hires.id,
-				hires.position,
+				hires.Position,
 				hires.tick.RelativeSeconds());
 		}
 		public static explicit operator NetworkRegion(Region r) {

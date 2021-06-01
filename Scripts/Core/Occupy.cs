@@ -1,16 +1,11 @@
-using MessagePack;
 using nobnak.Gist.Extensions.GPUExt;
+using nobnak.Gist.Extensions.Texture2DExt;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
-using nobnak.Gist.Scoped;
-using SphereOfInfluenceSys.Extensions.TimeExt;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using WeSyncSys.Extensions.TimeExt;
 
 namespace SphereOfInfluenceSys.Core {
 
@@ -20,7 +15,6 @@ namespace SphereOfInfluenceSys.Core {
 		public const string K_CalcOfSoI = "CalcSoI";
 		public const string K_ColorOfId = "ColorOfID";
 
-		public const GraphicsFormat FORMAT_TEX_WEIGHTS = GraphicsFormat.R32G32B32A32_SFloat;
 		public const GraphicsFormat FORMAT_TEX_IDS = GraphicsFormat.R32G32B32A32_SFloat;
 
 		public static readonly int P_IdTex = Shader.PropertyToID("_IdTex");
@@ -44,11 +38,7 @@ namespace SphereOfInfluenceSys.Core {
 		protected ComputeShader cs;
 		protected GPUList<Region> regions = new GPUList<Region>();
 
-		protected float lifeLimit;
-		protected Vector2 edgeDuration = new Vector2(0.5f, 0.1f);
-
-		protected Rect viewportRect;
-		protected Vector2 worldFieldSize;
+		protected Tuner tuner = new Tuner();
 		protected Matrix4x4 uv2FieldPos;
 
 		public Occupy() {
@@ -68,32 +58,47 @@ namespace SphereOfInfluenceSys.Core {
 		#endregion
 
 		public RenderTexture IdTex { get; protected set; }
+
+		public Tuner CurrTuner {
+			get {
+				return tuner.DeepCopy();
+			}
+			set {
+				if (value.Valid())
+					tuner = value.DeepCopy();
+			}
+		}
+		[System.Obsolete]
 		public float LifeLimit {
-			get { return lifeLimit; }
+			get { return tuner.lifeLimit; }
 			set {
 				if (value > 0f)
-					lifeLimit = value;
+					tuner.lifeLimit = value;
 			}
 		}
+		[System.Obsolete]
 		public Vector2 EdgeDuration {
-			get { return edgeDuration; }
+			get { return tuner.edgeDuration; }
 			set {
-				edgeDuration.x = Mathf.Clamp01(value.x);
-				edgeDuration.y = Mathf.Clamp01(1f - value.y);
+				tuner.edgeDuration.x = Mathf.Clamp01(value.x);
+				tuner.edgeDuration.y = Mathf.Clamp01(1f - value.y);
 			}
 		}
+		[System.Obsolete]
 		public void SetFieldSize(Vector2 size) {
 			SetFieldSize(size, Vector2.zero, size);
 		}
-		public void SetFieldSize(Vector2 viewportSize, Vector2 viewportOffset, Vector2 worldSize) {
-			this.viewportRect = new Rect(viewportOffset, viewportSize);
-			this.worldFieldSize = worldSize;
-			uv2FieldPos = Matrix4x4.zero;
-			uv2FieldPos[0] = viewportRect.width;	uv2FieldPos[12] = viewportRect.x;
-			uv2FieldPos[5] = viewportRect.height;	uv2FieldPos[13] = viewportRect.y;
-			uv2FieldPos[2] = worldSize.x;
-			uv2FieldPos[7] = worldSize.y;
+		[System.Obsolete]
+		public void SetFieldSize(Vector2 viewportSize, Vector2 viewportOffset, Vector2 global) {
+			var local = new Rect(viewportOffset, viewportSize);
+			SetFieldSize(local, global);
 		}
+		[System.Obsolete]
+		public void SetFieldSize(Rect local, Vector2 global) {
+			tuner.localField = local;
+			tuner.globalField = global;
+		}
+
 		public int Add(int id, Vector2 normPos, float life = -1f) {
 			var count = regions.Count;
 			life = (life >= 0f ? life : TimeExtension.CurrRelativeSeconds);
@@ -108,6 +113,34 @@ namespace SphereOfInfluenceSys.Core {
 		public void Clear() {
 			regions.Clear();
 		}
+		public Occupy Update(RenderTexture colorTex, int clusters = 10, float offset = 0.5f) {
+			var screenSize = colorTex.Size();
+			var t = TimeExtension.CurrRelativeSeconds;
+
+			if (screenSize.x < 4 || screenSize.y < 4) {
+				Debug.LogWarning($"Size too small : {screenSize}");
+			}
+			ScreenSize = screenSize;
+
+			SetCommonParams();
+			CheckIdTex(screenSize);
+
+			var dispatchSize = GetDispatchSize(screenSize);
+			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
+			cs.SetInt(P_Regions_Length, regions.Count);
+			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
+			cs.SetVector(PROP_LIFE_LIMIT,
+				new Vector4(tuner.edgeDuration.x, tuner.edgeDuration.y, t, 1f / tuner.lifeLimit));
+			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+
+			cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / clusters, offset, 0, 0));
+			cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
+			cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
+			cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+
+			return this;
+		}
+		[System.Obsolete]
 		public void Update(Vector2Int screenSize) {
 			if (screenSize.x < 4 || screenSize.y < 4) {
 				Debug.LogWarning($"Size too small : {screenSize}");
@@ -124,11 +157,12 @@ namespace SphereOfInfluenceSys.Core {
 
 			var t = TimeExtension.CurrRelativeSeconds;
 			cs.SetVector(PROP_LIFE_LIMIT, 
-				new Vector4(edgeDuration.x, edgeDuration.y, t, 1f / lifeLimit));
+				new Vector4(tuner.edgeDuration.x, tuner.edgeDuration.y, t, 1f / tuner.lifeLimit));
 
 			var dispatchSize = GetDispatchSize(screenSize);
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 		}
+		[System.Obsolete]
 		public void Visualize(RenderTexture colorTex, int clusters = 10, float offset = 0.5f) {
 			SetCommonParams();
 
@@ -144,6 +178,7 @@ namespace SphereOfInfluenceSys.Core {
 
 		#region member
 		protected void SetCommonParams() {
+			uv2FieldPos = GenerateFieldMatrix(tuner.localField, tuner.globalField);
 			cs.SetMatrix(P_UV2FieldPos, uv2FieldPos);
 
 			var screenTexelSize = GetScreenTexelSize(ScreenSize);
@@ -162,7 +197,14 @@ namespace SphereOfInfluenceSys.Core {
 		#endregion
 
 		#region static
-
+		public static Matrix4x4 GenerateFieldMatrix(Rect local, Vector2 global) {
+			var uv2FieldPos = Matrix4x4.zero;
+			uv2FieldPos[0] = local.width; uv2FieldPos[12] = local.x;
+			uv2FieldPos[5] = local.height; uv2FieldPos[13] = local.y;
+			uv2FieldPos[2] = global.x;
+			uv2FieldPos[7] = global.y;
+			return uv2FieldPos;
+		}
 		public static Vector3Int GetDispatchSize(Vector2Int screenSize) {
 			return new Vector3Int(
 				screenSize.x.DispatchSize(NUMTHREADS2D), screenSize.y.DispatchSize(NUMTHREADS2D), 1);
@@ -205,6 +247,21 @@ namespace SphereOfInfluenceSys.Core {
 			#endregion
 
 			#endregion
+		}
+		[System.Serializable]
+		public class Tuner {
+			public Rect localField = new Rect(0f, 0f, 1f, 1f);
+			public Vector2 globalField = new Vector2(1f, 1f);
+
+			public float lifeLimit = 10f;
+			public Vector2 edgeDuration = new Vector2(0.5f, 0.9f);
+
+			public bool Valid() {
+				return edgeDuration.x >= 0f
+					&& edgeDuration.y > edgeDuration.x
+					&& edgeDuration.y <= 1f
+					&& lifeLimit > 0f;
+			}
 		}
 		#endregion
 	}

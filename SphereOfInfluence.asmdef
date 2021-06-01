@@ -2,7 +2,8 @@
     "name": "SphereOfInfluence",
     "references": [
         "GUID:1660ea5965cce314f9c58a7eb6259838",
-        "GUID:ac696d4660754ac459c197e9f2bc703a"
+        "GUID:ac696d4660754ac459c197e9f2bc703a",
+        "GUID:cbe37cce2ae95ea408b49c0915635b68"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

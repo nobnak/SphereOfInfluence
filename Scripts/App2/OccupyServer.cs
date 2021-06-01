@@ -1,15 +1,10 @@
-using MessagePack;
 using nobnak.Gist;
 using nobnak.Gist.Extensions.ScreenExt;
 using SphereOfInfluenceSys.App2.Structures;
-using SphereOfInfluenceSys.Extensions.TimeExt;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
-using static SphereOfInfluenceSys.Core.Occupy;
+using WeSyncSys.Extensions.TimeExt;
 
 namespace SphereOfInfluenceSys.App2 {
 
@@ -40,7 +35,7 @@ namespace SphereOfInfluenceSys.App2 {
 		}
 		private void Update() {
 			var currTick = TimeExtension.CurrTick;
-			var expiredTick = currTick - (10f + settings.world.duration).ToTicks();
+			var expiredTick = currTick - (1f + settings.world.duration).ToTicks();
 			for (var i = 0; i < workingdata.regions.Count; ) {
 				var r = workingdata.regions[i];
 				if (r.tick > expiredTick) {
