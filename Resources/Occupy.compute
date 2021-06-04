@@ -23,15 +23,18 @@ StructuredBuffer<Region> _Regions;
 
 float4 _Life_Limit;
 
-float2 LocalPosFromUV(float2 uv) {
+float2 UVFromPixel(uint2 pixelPos) {
+	return (pixelPos.xy + 0.5) * _ScreenTexelSize.xy;
+}
+float2 PosFromLocalUV(float2 uv) {
 	return mul(_UV2FieldPos, float4(uv, 0, 1)).xy;
 }
-float2 WorldPosFromUV(float2 uv) {
+float2 PosFromGlobalUV(float2 uv) {
 	return mul(_UV2FieldPos, float4(uv, 0, 1)).zw;
 }
-float2 WorldPosFromPixel(uint2 pixelPos) {
-	float2 uv = (pixelPos.xy + 0.5) * _ScreenTexelSize.xy;
-	return WorldPosFromUV(uv);
+float2 PosFromLocalPixel(uint2 pixelPos) {
+	float2 uv = UVFromPixel(pixelPos);
+	return PosFromLocalUV(uv);
 }
 
 
@@ -42,12 +45,13 @@ void CalcSoI (uint3 dtid : SV_DispatchThreadID) {
 	float md = 3.402823466e+38F;
 	float mp = 0;
 
-	float2 center = WorldPosFromPixel(dtid.xy);
+	float2 uv = UVFromPixel(dtid.xy);
+	float2 center = PosFromLocalUV(uv);
 	float maxdist = length(mul(_UV2FieldPos, float4(1, 1, 0, 0)).zw);
 
 	for (uint i = 0; i < _Regions_Length; i++) {
 		Region reg = _Regions[i];
-		float2 pos = reg.position;
+		float2 pos = PosFromGlobalUV(reg.position);
 		float birthTime = reg.birthTime;
 
 		float dist = distance(pos, center);

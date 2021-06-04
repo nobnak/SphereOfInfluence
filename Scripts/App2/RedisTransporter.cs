@@ -1,7 +1,7 @@
 using CloudStructures;
 using CloudStructures.Converters;
 using CloudStructures.Structures;
-using SphereOfInfluenceSys.App2.Structures;
+using SphereOfInfluenceSys.Core.Structures;
 using StackExchange.Redis;
 using System.Threading.Tasks;
 using UnityEngine;

@@ -163,7 +163,6 @@ namespace SphereOfInfluenceSys.App1 {
 
 			Occupy.LifeLimit = settings.lifeLimit;
 			Occupy.EdgeDuration = settings.edgeDuration;
-			Occupy.SetFieldSize(fieldSize);
 			Occupy.Clear();
 			for (var i = 0; i < positions.Length; i++)
 				Occupy.Add(ids[i], positions[i], lifes[i]);

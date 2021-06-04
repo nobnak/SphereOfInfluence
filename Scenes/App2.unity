@@ -159,7 +159,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 836007508}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51147d03a3f861b4aa7e3f7d29387807, type: 3}
   m_Name: 
@@ -169,9 +169,21 @@ MonoBehaviour:
   events:
     Changed:
       m_PersistentCalls:
-        m_Calls: []
+        m_Calls:
+        - m_Target: {fileID: 1191139446}
+          m_MethodName: Listen
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 1
   tuner:
-    localUv: {x: 1, y: 1, z: 0, w: 0}
+    globalSize: 10
+    localUv: {x: 0, y: 0, z: 1, w: 1}
 --- !u!1 &906956378
 GameObject:
   m_ObjectHideFlags: 0
@@ -235,7 +247,7 @@ MonoBehaviour:
     world:
       worldSize_x: 1
       worldSize_y: 1
-      duration: 5
+      duration: 10
       WorldSize: {x: 1, y: 1}
   workingdata:
     regions: []
@@ -317,7 +329,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetCam: {fileID: 1421941231}
-  wesync: {fileID: 0}
+  wesync: {fileID: 836007510}
+  tuner:
+    occupy:
+      lifeLimit: 10
+      edgeDuration: {x: 0.5, y: 0.6}
+      debugColorSplit: 10
+    pip:
+      sizeScale: 0.2
 --- !u!1 &1421941229
 GameObject:
   m_ObjectHideFlags: 0
@@ -371,8 +390,8 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
-  orthographic size: 5
+  orthographic: 1
+  orthographic size: 1
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

@@ -5,12 +5,12 @@ using UnityEngine;
 using WeSyncSys.Extensions.TimeExt;
 using static SphereOfInfluenceSys.Core.Occupy;
 
-namespace SphereOfInfluenceSys.App2.Structures {
+namespace SphereOfInfluenceSys.Core.Structures {
 
 	[MessagePackObject(keyAsPropertyName: true)]
 	public class SharedData {
 		public NetworkRegion[] regions;
-		public WorldSetttings world;
+		public OccupationSetttings occupy;
 
 		#region interface
 
@@ -21,7 +21,7 @@ namespace SphereOfInfluenceSys.App2.Structures {
 			tmp.AppendLine($"Regions, count={regions.Length}");
 			for (var i = 0; i < regions.Length; i++)
 				tmp.AppendLine($"\t{i}. {regions[i]}");
-			tmp.AppendLine($"{world}");
+			tmp.AppendLine($"{occupy}");
 			return tmp.ToString();
 		}
 		#endregion
@@ -32,17 +32,27 @@ namespace SphereOfInfluenceSys.App2.Structures {
 	[System.Serializable]
 	[StructLayout(LayoutKind.Explicit)]
 	[MessagePackObject(keyAsPropertyName: true)]
-	public class WorldSetttings {
+	public class OccupationSetttings {
 		[FieldOffset(0)]
-		public float worldSize_x = 1f;
+		public float lifeLimit = 10f;
 		[FieldOffset(4)]
-		public float worldSize_y = 1f;
+		public float edgeDuration_x = 0.5f;
 		[FieldOffset(8)]
-		public float duration = 15f;
+		public float edgeDuration_y = 0.9f;
 
-		[FieldOffset(0)]
 		[IgnoreMember]
-		public Vector2 WorldSize;
+		[HideInInspector]
+		[FieldOffset(4)]
+		public Vector2 EdgeDuration;
+
+		#region interface
+		public bool Valid() =>
+			edgeDuration_x >= 0f
+			&& edgeDuration_y > edgeDuration_x
+			&& edgeDuration_y <= 1f;
+		public Vector4 TemporalSetting =>
+			new Vector4(edgeDuration_x, edgeDuration_y, TimeExtension.CurrRelativeSeconds, 1f / lifeLimit);
+		#endregion
 	}
 
 	[System.Serializable]
@@ -59,6 +69,7 @@ namespace SphereOfInfluenceSys.App2.Structures {
 		public readonly float position_y;
 
 		[FieldOffset(12)]
+		[IgnoreMember]
 		public readonly Vector2 Position;
 
 		[SerializationConstructor]

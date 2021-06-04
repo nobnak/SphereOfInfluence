@@ -1,11 +1,14 @@
 using nobnak.Gist.Extensions.GPUExt;
+using nobnak.Gist.Extensions.ScreenExt;
 using nobnak.Gist.Extensions.Texture2DExt;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
+using SphereOfInfluenceSys.Core.Structures;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using WeSyncSys.Extensions.TimeExt;
+using WeSyncSys.Structures;
 
 namespace SphereOfInfluenceSys.Core {
 
@@ -70,33 +73,19 @@ namespace SphereOfInfluenceSys.Core {
 		}
 		[System.Obsolete]
 		public float LifeLimit {
-			get { return tuner.lifeLimit; }
+			get { return tuner.occupy.lifeLimit; }
 			set {
 				if (value > 0f)
-					tuner.lifeLimit = value;
+					tuner.occupy.lifeLimit = value;
 			}
 		}
 		[System.Obsolete]
 		public Vector2 EdgeDuration {
-			get { return tuner.edgeDuration; }
+			get { return tuner.occupy.EdgeDuration; }
 			set {
-				tuner.edgeDuration.x = Mathf.Clamp01(value.x);
-				tuner.edgeDuration.y = Mathf.Clamp01(1f - value.y);
+				tuner.occupy.edgeDuration_x = Mathf.Clamp01(value.x);
+				tuner.occupy.edgeDuration_y = Mathf.Clamp01(1f - value.y);
 			}
-		}
-		[System.Obsolete]
-		public void SetFieldSize(Vector2 size) {
-			SetFieldSize(size, Vector2.zero, size);
-		}
-		[System.Obsolete]
-		public void SetFieldSize(Vector2 viewportSize, Vector2 viewportOffset, Vector2 global) {
-			var local = new Rect(viewportOffset, viewportSize);
-			SetFieldSize(local, global);
-		}
-		[System.Obsolete]
-		public void SetFieldSize(Rect local, Vector2 global) {
-			tuner.localField = local;
-			tuner.globalField = global;
 		}
 
 		public int Add(int id, Vector2 normPos, float life = -1f) {
@@ -113,30 +102,38 @@ namespace SphereOfInfluenceSys.Core {
 		public void Clear() {
 			regions.Clear();
 		}
-		public Occupy Update(RenderTexture colorTex, int clusters = 10, float offset = 0.5f) {
-			var screenSize = colorTex.Size();
+		public Occupy Update(
+			SubSpace space,
+			RenderTexture colorTex = null,
+			Camera targetCam = null) {
 			var t = TimeExtension.CurrRelativeSeconds;
 
+			var h = Screen.height;
+			var screenAspect = space.localField.size.AspectRatio();
+			var screenSize = new Vector2Int(Mathf.RoundToInt(h * screenAspect), h);
+			if (colorTex != null)
+				screenSize = colorTex.Size(); 
 			if (screenSize.x < 4 || screenSize.y < 4) {
 				Debug.LogWarning($"Size too small : {screenSize}");
 			}
 			ScreenSize = screenSize;
 
-			SetCommonParams();
+			SetCommonParams(space);
 			CheckIdTex(screenSize);
 
 			var dispatchSize = GetDispatchSize(screenSize);
 			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
 			cs.SetInt(P_Regions_Length, regions.Count);
 			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
-			cs.SetVector(PROP_LIFE_LIMIT,
-				new Vector4(tuner.edgeDuration.x, tuner.edgeDuration.y, t, 1f / tuner.lifeLimit));
+			cs.SetVector(PROP_LIFE_LIMIT, tuner.occupy.TemporalSetting);
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
-			cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / clusters, offset, 0, 0));
-			cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
-			cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
-			cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+			if (colorTex != null) {
+				cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / tuner.debugColorSplit, 0.13f, 0, 0));
+				cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
+				cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
+				cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
+			}
 
 			return this;
 		}
@@ -147,7 +144,7 @@ namespace SphereOfInfluenceSys.Core {
 			}
 			ScreenSize = screenSize;
 
-			SetCommonParams();
+			SetCommonParams(SubSpace.Generate(screenSize));
 
 			CheckIdTex(screenSize);
 			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
@@ -156,15 +153,15 @@ namespace SphereOfInfluenceSys.Core {
 			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
 
 			var t = TimeExtension.CurrRelativeSeconds;
-			cs.SetVector(PROP_LIFE_LIMIT, 
-				new Vector4(tuner.edgeDuration.x, tuner.edgeDuration.y, t, 1f / tuner.lifeLimit));
+			cs.SetVector(PROP_LIFE_LIMIT, tuner.occupy.TemporalSetting);
 
 			var dispatchSize = GetDispatchSize(screenSize);
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 		}
 		[System.Obsolete]
 		public void Visualize(RenderTexture colorTex, int clusters = 10, float offset = 0.5f) {
-			SetCommonParams();
+			var size = colorTex.Size();
+			SetCommonParams(SubSpace.Generate(size));
 
 			cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / clusters, offset, 0, 0));
 
@@ -177,8 +174,11 @@ namespace SphereOfInfluenceSys.Core {
 		#endregion
 
 		#region member
-		protected void SetCommonParams() {
-			uv2FieldPos = GenerateFieldMatrix(tuner.localField, tuner.globalField);
+		protected void SetCommonParams(SubSpace space) {
+			var localOffset =space.localField.min;
+			var localSize = space.localField.size;
+			var globalSize = space.globalField;
+			uv2FieldPos = GenerateUv2PosMatrix(localOffset, localSize, globalSize);
 			cs.SetMatrix(P_UV2FieldPos, uv2FieldPos);
 
 			var screenTexelSize = GetScreenTexelSize(ScreenSize);
@@ -197,10 +197,10 @@ namespace SphereOfInfluenceSys.Core {
 		#endregion
 
 		#region static
-		public static Matrix4x4 GenerateFieldMatrix(Rect local, Vector2 global) {
+		public static Matrix4x4 GenerateUv2PosMatrix(Vector2 localOffset, Vector2 localSize, Vector2 global) {
 			var uv2FieldPos = Matrix4x4.zero;
-			uv2FieldPos[0] = local.width; uv2FieldPos[12] = local.x;
-			uv2FieldPos[5] = local.height; uv2FieldPos[13] = local.y;
+			uv2FieldPos[0] = localSize.x; uv2FieldPos[12] = localOffset.x;
+			uv2FieldPos[5] = localSize.y; uv2FieldPos[13] = localOffset.y;
 			uv2FieldPos[2] = global.x;
 			uv2FieldPos[7] = global.y;
 			return uv2FieldPos;
@@ -250,18 +250,11 @@ namespace SphereOfInfluenceSys.Core {
 		}
 		[System.Serializable]
 		public class Tuner {
-			public Rect localField = new Rect(0f, 0f, 1f, 1f);
-			public Vector2 globalField = new Vector2(1f, 1f);
+			public OccupationSetttings occupy = new OccupationSetttings();
 
-			public float lifeLimit = 10f;
-			public Vector2 edgeDuration = new Vector2(0.5f, 0.9f);
+			public int debugColorSplit = 10;
 
-			public bool Valid() {
-				return edgeDuration.x >= 0f
-					&& edgeDuration.y > edgeDuration.x
-					&& edgeDuration.y <= 1f
-					&& lifeLimit > 0f;
-			}
+			public bool Valid() => occupy.Valid();
 		}
 		#endregion
 	}

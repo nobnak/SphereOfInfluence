@@ -1,6 +1,6 @@
 using nobnak.Gist;
 using nobnak.Gist.Extensions.ScreenExt;
-using SphereOfInfluenceSys.App2.Structures;
+using SphereOfInfluenceSys.Core.Structures;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -25,7 +25,7 @@ namespace SphereOfInfluenceSys.App2 {
 			notifier.Validation += () => {
 				var sharing = new SharedData() {
 					regions = workingdata.regions.ToArray(),
-					world = settings.world
+					occupy = settings.occupy
 				};
 				Notify(sharing);
 			};
@@ -35,7 +35,7 @@ namespace SphereOfInfluenceSys.App2 {
 		}
 		private void Update() {
 			var currTick = TimeExtension.CurrTick;
-			var expiredTick = currTick - (1f + settings.world.duration).ToTicks();
+			var expiredTick = currTick - (1.2f * (10f + settings.occupy.lifeLimit)).ToTicks();
 			for (var i = 0; i < workingdata.regions.Count; ) {
 				var r = workingdata.regions[i];
 				if (r.tick > expiredTick) {
@@ -50,7 +50,7 @@ namespace SphereOfInfluenceSys.App2 {
 			if (settings.debug) {
 				if (Input.GetMouseButtonDown(0)) {
 					var uv = Input.mousePosition.UV();
-					var pos = Vector2.Scale(settings.world.WorldSize, uv);
+					var pos = Vector2.Scale(Vector2.one, uv);
 					var reg = new NetworkRegion(Time.frameCount, pos);
 					workingdata.regions.Add(reg);
 					Debug.Log($"{GetType().Name} : Add region. {reg}");
@@ -87,7 +87,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[System.Serializable]
 		public class ServerSettings {
 			public bool debug;
-			public WorldSetttings world = new WorldSetttings();
+			public OccupationSetttings occupy = new OccupationSetttings();
 		}
 		#endregion
 	}
