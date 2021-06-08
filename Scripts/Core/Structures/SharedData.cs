@@ -10,7 +10,7 @@ namespace SphereOfInfluenceSys.Core.Structures {
 	[MessagePackObject(keyAsPropertyName: true)]
 	public class SharedData {
 		public NetworkRegion[] regions;
-		public OccupationSetttings occupy;
+		public OccupyTuner occupy;
 
 		#region interface
 
@@ -32,7 +32,7 @@ namespace SphereOfInfluenceSys.Core.Structures {
 	[System.Serializable]
 	[StructLayout(LayoutKind.Explicit)]
 	[MessagePackObject(keyAsPropertyName: true)]
-	public class OccupationSetttings {
+	public class OccupyTuner {
 		[FieldOffset(0)]
 		public float lifeLimit = 10f;
 		[FieldOffset(4)]

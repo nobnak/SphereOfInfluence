@@ -32,10 +32,6 @@ float2 PosFromLocalUV(float2 uv) {
 float2 PosFromGlobalUV(float2 uv) {
 	return mul(_UV2FieldPos, float4(uv, 0, 1)).zw;
 }
-float2 PosFromLocalPixel(uint2 pixelPos) {
-	float2 uv = UVFromPixel(pixelPos);
-	return PosFromLocalUV(uv);
-}
 
 
 

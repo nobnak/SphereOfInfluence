@@ -250,7 +250,7 @@ namespace SphereOfInfluenceSys.Core {
 		}
 		[System.Serializable]
 		public class Tuner {
-			public OccupationSetttings occupy = new OccupationSetttings();
+			public OccupyTuner occupy = new OccupyTuner();
 
 			public int debugColorSplit = 10;
 

@@ -183,7 +183,7 @@ MonoBehaviour:
           m_CallState: 1
   tuner:
     globalSize: 10
-    localUv: {x: 0, y: 0, z: 1, w: 1}
+    localUv: {x: 0, y: 0, z: 0.5, w: 1}
 --- !u!1 &906956378
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,7 +200,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &906956379
 Transform:
   m_ObjectHideFlags: 0
@@ -243,12 +243,12 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 1
   settings:
-    debug: 1
-    world:
-      worldSize_x: 1
-      worldSize_y: 1
-      duration: 10
-      WorldSize: {x: 1, y: 1}
+    debug: 0
+    occupy:
+      lifeLimit: 10
+      edgeDuration_x: 0.5
+      edgeDuration_y: 0.9
+      EdgeDuration: {x: 0.5, y: 0.9}
   workingdata:
     regions: []
 --- !u!1 &1162086844
@@ -282,6 +282,7 @@ Transform:
   - {fileID: 1191139445}
   - {fileID: 1766415191}
   - {fileID: 836007509}
+  - {fileID: 1968254158}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -331,12 +332,75 @@ MonoBehaviour:
   targetCam: {fileID: 1421941231}
   wesync: {fileID: 836007510}
   tuner:
-    occupy:
-      lifeLimit: 10
-      edgeDuration: {x: 0.5, y: 0.6}
-      debugColorSplit: 10
     pip:
       sizeScale: 0.2
+  mem:
+    occupy:
+      occupy:
+        lifeLimit: 10
+        edgeDuration_x: 0.5
+        edgeDuration_y: 0.9
+        EdgeDuration: {x: 0.5, y: 0.9}
+      debugColorSplit: 10
+--- !u!1 &1218527199
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1218527201}
+  - component: {fileID: 1218527200}
+  m_Layer: 0
+  m_Name: UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1218527200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1218527199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06cd84eed88bb554b84f2b7858284c09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exhitFolder:
+    exhibitors:
+    - {fileID: 836007510}
+    - {fileID: 1968254157}
+  folderPath:
+    method: 0
+    specialFolder: 5
+    folderpath: '%USERPROFILE%\Documents\'
+  tuner:
+    enableDpiScale: 1
+  visibility:
+    m_PersistentCalls:
+      m_Calls: []
+  uiVisibility:
+    key: 99
+    guiVisible: 0
+--- !u!4 &1218527201
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1218527199}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1421941229
 GameObject:
   m_ObjectHideFlags: 0
@@ -519,3 +583,65 @@ MonoBehaviour:
           m_CallState: 1
   settings:
     server: 127.0.0.1
+--- !u!1 &1968254156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1968254158}
+  - component: {fileID: 1968254157}
+  m_Layer: 0
+  m_Name: Occupation UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1968254157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1968254156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e5bab601f4d7e14bbbf620e207a9d90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiName: 
+  linker:
+    server: {fileID: 906956380}
+    client: {fileID: 1191139446}
+    redis: {fileID: 1766415192}
+  tuner:
+    provider: 1
+    server:
+      debug: 0
+      occupy:
+        lifeLimit: 10
+        edgeDuration_x: 0.5
+        edgeDuration_y: 0.9
+        EdgeDuration: {x: 0.5, y: 0.9}
+    client:
+      pip:
+        sizeScale: 0.2
+    redis:
+      server: 127.0.0.1
+--- !u!4 &1968254158
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1968254156}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1162086845}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

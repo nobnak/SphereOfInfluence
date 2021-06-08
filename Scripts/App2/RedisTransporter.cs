@@ -1,6 +1,8 @@
 using CloudStructures;
 using CloudStructures.Converters;
 using CloudStructures.Structures;
+using nobnak.Gist;
+using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core.Structures;
 using StackExchange.Redis;
 using System.Threading.Tasks;
@@ -17,7 +19,9 @@ namespace SphereOfInfluenceSys.App2 {
 		[SerializeField]
 		protected Events events = new Events();
 		[SerializeField]
-		protected Settings settings = new Settings();
+		protected Tuner settings = new Tuner();
+
+		protected Validator validator = new Validator();
 
 		protected RedisConnection redis;
 		protected RedisString<SharedData> redisString;
@@ -26,7 +30,16 @@ namespace SphereOfInfluenceSys.App2 {
 		protected TaskScheduler mainScheduler;
 
 		#region interface
+		public Tuner CurrTuner {
+			get => settings.DeepCopy();
+			set {
+				settings = value.DeepCopy();
+				validator.Invalidate();
+			}
+		}
+
 		public void Listen(SharedData shared) {
+			validator.Validate();
 			TaskSet(shared);
 		}
 		public void Notify(SharedData shared) {
@@ -38,6 +51,23 @@ namespace SphereOfInfluenceSys.App2 {
 		private void OnEnable() {
 			mainScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
+			validator.Reset();
+			validator.Validation += () => {
+				ReleaseRedis();
+				CreateRedis();
+			};
+
+		}
+		private void OnDisable() {
+			ReleaseRedis();
+		}
+		private void Update() {
+			validator.Validate();
+		}
+		#endregion
+
+		#region member
+		private void CreateRedis() {
 			redis = new RedisConnection(
 				new RedisConfig("App2", settings.server), new MessagePackConverter());
 			redisString = new RedisString<SharedData>(
@@ -48,9 +78,8 @@ namespace SphereOfInfluenceSys.App2 {
 				TaskGet();
 
 			});
-
 		}
-		private void OnDisable() {
+		private void ReleaseRedis() {
 			if (subsc != null) {
 				subsc.UnsubscribeAll();
 				subsc = null;
@@ -60,11 +89,7 @@ namespace SphereOfInfluenceSys.App2 {
 				redis = null;
 			}
 		}
-		private void Update() {
-		}
-		#endregion
 
-		#region member
 		private void TaskSet(SharedData shared) {
 			try {
 				redisString
@@ -111,7 +136,7 @@ namespace SphereOfInfluenceSys.App2 {
 			public OccupyServer.Events.SharedDataEvent Changed = new OccupyServer.Events.SharedDataEvent();
 		}
 		[System.Serializable]
-		public class Settings {
+		public class Tuner {
 			public string server = "127.0.0.1";
 		}
 		#endregion

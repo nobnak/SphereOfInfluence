@@ -1,5 +1,6 @@
 using nobnak.Gist;
 using nobnak.Gist.Extensions.ScreenExt;
+using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core.Structures;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[SerializeField]
 		protected Events events = new Events();
 		[SerializeField]
-		protected ServerSettings settings = new ServerSettings();
+		protected Tuner settings = new Tuner();
 		[SerializeField]
 		protected WorkingData workingdata = new WorkingData();
 
@@ -66,7 +67,13 @@ namespace SphereOfInfluenceSys.App2 {
 		public void Notify(SharedData sharing) {
 			events.Changed?.Invoke(sharing);
 		}
-
+		public Tuner CurrTuner { 
+			get => settings.DeepCopy();
+			set {
+				settings = value.DeepCopy();
+				notifier.Invalidate();
+			}
+		}
 		#endregion
 
 		#region classes
@@ -85,9 +92,9 @@ namespace SphereOfInfluenceSys.App2 {
 
 
 		[System.Serializable]
-		public class ServerSettings {
+		public class Tuner {
 			public bool debug;
-			public OccupationSetttings occupy = new OccupationSetttings();
+			public OccupyTuner occupy = new OccupyTuner();
 		}
 		#endregion
 	}

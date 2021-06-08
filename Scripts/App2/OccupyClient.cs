@@ -21,6 +21,8 @@ namespace SphereOfInfluenceSys.App2 {
 		protected WeSyncExhibitor wesync;
 		[SerializeField]
 		protected Tuner tuner = new Tuner();
+		[SerializeField]
+		protected WorkingMem mem = new WorkingMem();
 
 		protected CameraData cameraData = default;
 		protected SharedData shared;
@@ -29,6 +31,8 @@ namespace SphereOfInfluenceSys.App2 {
 		protected Occupy occupy;
 		protected RenderTexture colorTex;
 		protected PIPTexture pip;
+
+		public Tuner CurrTuner { get; internal set; }
 
 		#region unity
 		private void OnEnable() {
@@ -90,7 +94,7 @@ namespace SphereOfInfluenceSys.App2 {
 			if (wesync != null) {
 				var subspace = wesync.CurrSubspace;
 				if (subspace != default) {
-					occupy.CurrTuner = tuner.occupy;
+					occupy.CurrTuner = mem.occupy;
 					occupy.Update(subspace, colorTex);
 				}
 			}
@@ -101,7 +105,7 @@ namespace SphereOfInfluenceSys.App2 {
 		public void Listen(SharedData shared) {
 			Debug.Log($"{GetType().Name} : Receive shared data. {shared}");
 			this.shared = shared;
-			tuner.occupy.occupy = shared.occupy.DeepCopy();
+			mem.occupy.occupy = shared.occupy.DeepCopy();
 			occupy.Clear();
 			foreach (var r in shared.regions)
 				occupy.Add(r);
@@ -122,8 +126,11 @@ namespace SphereOfInfluenceSys.App2 {
 		#region definition
 		[System.Serializable]
 		public class Tuner {
-			public Occupy.Tuner occupy = new Occupy.Tuner();
 			public PIPTexture.Tuner pip = new PIPTexture.Tuner();
+		}
+		[System.Serializable]
+		public class WorkingMem {
+			public Occupy.Tuner occupy = new Occupy.Tuner();
 		}
 		#endregion
 	}
