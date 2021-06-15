@@ -2,9 +2,11 @@ using nobnak.Gist;
 using nobnak.Gist.Cameras;
 using nobnak.Gist.Extensions.ScreenExt;
 using nobnak.Gist.Extensions.Texture2DExt;
+using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core;
 using SphereOfInfluenceSys.Core.Structures;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using WeSyncSys;
@@ -32,7 +34,8 @@ namespace SphereOfInfluenceSys.App2 {
 		protected RenderTexture colorTex;
 		protected PIPTexture pip;
 
-		public Tuner CurrTuner { get; internal set; }
+		protected AsyncCPUTexture<Vector4> idTexCpu = new AsyncCPUTexture<Vector4>();
+		protected Coroutine idTexReadbackCo;
 
 		#region unity
 		private void OnEnable() {
@@ -64,8 +67,14 @@ namespace SphereOfInfluenceSys.App2 {
 				pip.Clear();
 				pip.Add(colorTex);
 			};
+
+			idTexReadbackCo = StartCoroutine(UpdateOccupation());
 		}
 		private void OnDisable() {
+			if (idTexReadbackCo != null) {
+				StopCoroutine(idTexReadbackCo);
+				idTexReadbackCo = null;
+			}
 			if (occupy != null) {
 				occupy.Dispose();
 				occupy = null;
@@ -82,26 +91,42 @@ namespace SphereOfInfluenceSys.App2 {
 		private void OnValidate() {
 			validator.Invalidate();
 		}
-		private void Update() {
-			validator.Validate();
-			pip.Validate();
-			UpdateOccupation();
-		}
 		#endregion
 
 		#region members
-		private void UpdateOccupation() {
-			if (wesync != null) {
-				var subspace = wesync.CurrSubspace;
-				if (subspace != default) {
-					occupy.CurrTuner = mem.occupy;
-					occupy.Update(subspace, colorTex);
+		private IEnumerator UpdateOccupation() {
+			while (true) {
+				yield return null;
+
+				validator.Validate();
+				pip.Validate();
+
+				if (wesync != null) {
+					var subspace = wesync.CurrSubspace;
+					if (subspace != default) {
+						occupy.CurrTuner = mem.occupy;
+						occupy.Update(subspace, colorTex);
+					}
 				}
+
+				idTexCpu.Source = occupy.IdTex;
+				foreach (var __ in idTexCpu)
+					yield return null;
 			}
 		}
 		#endregion
 
 		#region interface
+		public Tuner CurrTuner {
+			get {
+				validator.Validate();
+				return tuner;
+			}
+			set {
+				tuner = value.DeepCopy();
+				validator.Invalidate();
+			}
+		}
 		public void Listen(SharedData shared) {
 			Debug.Log($"{GetType().Name} : Receive shared data. {shared}");
 			this.shared = shared;
