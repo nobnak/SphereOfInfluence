@@ -48,7 +48,7 @@ namespace SphereOfInfluenceSys.App2 {
 		#endregion
 
 		#region unity
-		private void OnEnable() {
+		protected virtual void OnEnable() {
 			mainScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
 			validator.Reset();
@@ -58,16 +58,16 @@ namespace SphereOfInfluenceSys.App2 {
 			};
 
 		}
-		private void OnDisable() {
+		protected virtual void OnDisable() {
 			ReleaseRedis();
 		}
-		private void Update() {
+		protected virtual void Update() {
 			validator.Validate();
 		}
 		#endregion
 
 		#region member
-		private void CreateRedis() {
+		protected virtual void CreateRedis() {
 			redis = new RedisConnection(
 				new RedisConfig("App2", settings.server), new MessagePackConverter());
 			redisString = new RedisString<SharedData>(
@@ -79,7 +79,7 @@ namespace SphereOfInfluenceSys.App2 {
 
 			});
 		}
-		private void ReleaseRedis() {
+		protected virtual void ReleaseRedis() {
 			if (subsc != null) {
 				subsc.UnsubscribeAll();
 				subsc = null;
@@ -90,40 +90,33 @@ namespace SphereOfInfluenceSys.App2 {
 			}
 		}
 
-		private void TaskSet(SharedData shared) {
+		protected virtual async Task DoBeforePublish(Task<bool> t) { }
+		protected virtual async Task DoAfterNotifySub(Task<RedisResult<SharedData>> t) { }
+
+		protected virtual void TaskSet(SharedData shared) {
 			try {
 				redisString
 					.SetAsync(shared)
+					.ContinueWith(DoBeforePublish).Unwrap()
 					.ContinueWith(t => {
-						TaskPub();
-					}, mainScheduler);
+						subsc.Publish(CH_SHARED_DATA_UPDATE, TimeExtension.CurrTick, CommandFlags.FireAndForget);
+					});
 			} catch (System.Exception e) {
 				Debug.LogWarning(e);
 			}
 		}
-		private void TaskGet() {
+		protected virtual void TaskGet() {
 			try {
 				redisString
 					.GetAsync()
-					.ContinueWith(t => _TaskGetResult(t), mainScheduler);
-			} catch (System.Exception e) {
-				Debug.LogWarning(e);
-			}
-		}
-		protected void TaskPub() {
-			try {
-				subsc.Publish(CH_SHARED_DATA_UPDATE, TimeExtension.CurrTick, CommandFlags.FireAndForget);
-			} catch(System.Exception e) {
-				Debug.LogWarning(e);
-			}
-		}
-		private void _TaskGetResult(Task<RedisResult<SharedData>> t) {
-			try {
-				if (t.IsFaulted)
-					Debug.LogWarning(t.Exception);
-				else if (t.IsCompleted) {
-					Notify(t.Result.Value);
-				}
+					.ContinueWith(async t => {
+						if (t.IsFaulted)
+							Debug.LogWarning(t.Exception);
+						else if (t.IsCompleted) {
+							await DoAfterNotifySub(t);
+							Notify(t.Result.Value);
+						}
+					}, mainScheduler);
 			} catch (System.Exception e) {
 				Debug.LogWarning(e);
 			}
