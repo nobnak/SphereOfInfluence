@@ -1,6 +1,7 @@
 using CloudStructures;
 using CloudStructures.Converters;
 using CloudStructures.Structures;
+using MessagePack;
 using nobnak.Gist;
 using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core.Structures;
@@ -40,7 +41,6 @@ namespace SphereOfInfluenceSys.App2 {
 			}
 		}
 		public void Notify(RouteData data) {
-			Debug.Log($"Notify : {data}");
 			subsc.Publish(CH_DataChanged,
 				CONVERTER.Serialize<RouteData>(data),
 				CommandFlags.FireAndForget);
@@ -87,7 +87,7 @@ namespace SphereOfInfluenceSys.App2 {
 			subsc.Subscribe(CH_DataChanged, (ch, v) => {
 				try {
 					var data = CONVERTER.Deserialize<RouteData>(v);
-					Debug.Log($"Upate notified : {data}");
+					Debug.Log($"Notification received : {data}");
 					routeDataUpdates.Add(data);
 				} catch (System.Exception e) {
 					Debug.LogWarning(e);
@@ -114,6 +114,7 @@ namespace SphereOfInfluenceSys.App2 {
 		#region definitions
 		[System.Serializable]
 		[StructLayout(LayoutKind.Sequential)]
+		[MessagePackObject(keyAsPropertyName: true)]
 		public struct RouteData {
 			public string path;
 			public byte[] obj;

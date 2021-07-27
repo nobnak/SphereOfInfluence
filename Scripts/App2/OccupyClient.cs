@@ -148,7 +148,6 @@ namespace SphereOfInfluenceSys.App2 {
 			}
 		}
 		public void Listen(RedisTransporter.RouteData route) {
-			Debug.Log($"Client listens : {route}");
 			if (OccupyServer.PATH == route.path)
 				TaskGet();
 		}
