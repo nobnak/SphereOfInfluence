@@ -1,15 +1,18 @@
+using CloudStructures;
+using CloudStructures.Structures;
 using nobnak.Gist;
 using nobnak.Gist.Extensions.ScreenExt;
 using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core.Structures;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using WeSyncSys.Extensions.TimeExt;
 
 namespace SphereOfInfluenceSys.App2 {
 
-	public class OccupyServer : MonoBehaviour {
+	public class OccupyServer : OccupyBase {
 
 		[SerializeField]
 		protected Events events = new Events();
@@ -18,21 +21,28 @@ namespace SphereOfInfluenceSys.App2 {
 		[SerializeField]
 		protected WorkingData workingdata = new WorkingData();
 
-		protected Validator	notifier = new Validator();
+		protected Validator	workingDataValidator = new Validator();
 
 		#region unity
-		private void OnEnable() {
-			notifier.Reset();
-			notifier.Validation += () => {
+		protected override void OnEnable() {
+			base.OnEnable();
+
+			connectionValidator.Validated += () => workingDataValidator.Invalidate();
+
+			workingDataValidator.Reset();
+			workingDataValidator.Validation += () => {
+				if (!IsRedisInitialized)
+					return;
+
 				var sharing = new SharedData() {
 					regions = workingdata.regions.ToArray(),
 					occupy = settings.occupy
 				};
-				Notify(sharing);
+				Send(sharing);
 			};
 		}
 		private void OnValidate() {
-			notifier.Invalidate();
+			workingDataValidator.Invalidate();
 		}
 		private void Update() {
 			var currTick = TimeExtension.CurrTick;
@@ -44,7 +54,7 @@ namespace SphereOfInfluenceSys.App2 {
 					continue;
 				}
 
-				notifier.Invalidate();
+				workingDataValidator.Invalidate();
 				workingdata.regions.RemoveAt(i);
 			}
 
@@ -55,23 +65,41 @@ namespace SphereOfInfluenceSys.App2 {
 					var reg = new NetworkRegion(Time.frameCount, pos);
 					workingdata.regions.Add(reg);
 					Debug.Log($"{GetType().Name} : Add region. {reg}");
-					notifier.Invalidate();
+					workingDataValidator.Invalidate();
 				}
 			}
 
-			notifier.Validate();
+			workingDataValidator.Validate();
 		}
 		#endregion
 
 		#region interface
-		public void Notify(SharedData sharing) {
-			events.Changed?.Invoke(sharing);
+		public void Notify(RedisTransporter.RouteData route) {
+			events.routeOnSend.Invoke(route);
 		}
 		public Tuner CurrTuner { 
 			get => settings.DeepCopy();
 			set {
 				settings = value.DeepCopy();
-				notifier.Invalidate();
+				workingDataValidator.Invalidate();
+			}
+		}
+		#endregion
+
+		#region member
+		protected virtual void Send(SharedData shared) {
+			try {
+				ThrowIfRedisIsNotInitialized();
+				redisString
+					.SetAsync(shared)
+					.ContinueWith(t => {
+						var data = new RedisTransporter.RouteData() {
+							path = PATH,
+						};
+						Notify(data);
+					}, mainScheduler);
+			} catch (System.Exception e) {
+				Debug.LogWarning(e);
 			}
 		}
 		#endregion
@@ -83,14 +111,12 @@ namespace SphereOfInfluenceSys.App2 {
 			[System.Serializable]
 			public class SharedDataEvent : UnityEvent<SharedData> { }
 
-			public SharedDataEvent Changed = new SharedDataEvent();
+			public RedisTransporter.RouteEvent routeOnSend = new RedisTransporter.RouteEvent();
 		}
 		[System.Serializable]
 		public class WorkingData {
 			public List<NetworkRegion> regions = new List<NetworkRegion>();
 		}
-
-
 		[System.Serializable]
 		public class Tuner {
 			public bool debug;

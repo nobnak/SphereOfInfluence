@@ -1,3 +1,5 @@
+using CloudStructures;
+using CloudStructures.Structures;
 using nobnak.Gist;
 using nobnak.Gist.Cameras;
 using nobnak.Gist.Extensions.ScreenExt;
@@ -7,13 +9,14 @@ using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core;
 using SphereOfInfluenceSys.Core.Structures;
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using WeSyncSys;
 
 namespace SphereOfInfluenceSys.App2 {
 
-	public class OccupyClient : MonoBehaviour {
+	public class OccupyClient : OccupyBase {
 
 		public const CameraEvent EVT_CAMCBUF = CameraEvent.AfterEverything;
 
@@ -38,7 +41,9 @@ namespace SphereOfInfluenceSys.App2 {
 		protected Coroutine idTexReadbackCo;
 
 		#region unity
-		private void OnEnable() {
+		protected override void OnEnable() {
+			base.OnEnable();
+
 			occupy = new Occupy();
 			pip = new PIPTexture();
 
@@ -94,6 +99,21 @@ namespace SphereOfInfluenceSys.App2 {
 		#endregion
 
 		#region members
+		protected virtual void TaskGet() {
+			try {
+				ThrowIfRedisIsNotInitialized();
+				redisString
+					.GetAsync()
+					.ContinueWith(t => {
+						if (t.IsFaulted)
+							Debug.LogWarning(t.Exception);
+						else if (t.IsCompleted)
+							Listen(t.Result.Value);
+					}, mainScheduler);
+			} catch (System.Exception e) {
+				Debug.LogWarning(e);
+			}
+		}
 		private IEnumerator UpdateOccupation() {
 			while (true) {
 				yield return null;
@@ -126,6 +146,11 @@ namespace SphereOfInfluenceSys.App2 {
 				tuner = value.DeepCopy();
 				validator.Invalidate();
 			}
+		}
+		public void Listen(RedisTransporter.RouteData route) {
+			Debug.Log($"Client listens : {route}");
+			if (OccupyServer.PATH == route.path)
+				TaskGet();
 		}
 		public void Listen(SharedData shared) {
 			Debug.Log($"{GetType().Name} : Receive shared data. {shared}");

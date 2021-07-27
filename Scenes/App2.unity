@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -200,7 +200,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &906956379
 Transform:
   m_ObjectHideFlags: 0
@@ -228,11 +228,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   events:
-    Changed:
+    routeOnSend:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 1766415192}
-          m_MethodName: Listen
+          m_MethodName: Notify
           m_Mode: 0
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -243,7 +243,7 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 1
   settings:
-    debug: 0
+    debug: 1
     occupy:
       lifeLimit: 10
       edgeDuration_x: 0.5
@@ -333,6 +333,7 @@ MonoBehaviour:
   wesync: {fileID: 836007510}
   tuner:
     pip:
+      enabled: 1
       sizeScale: 0.2
   mem:
     occupy:
@@ -478,7 +479,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 1
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -590,9 +591,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   events:
-    Changed:
+    redisOnChange:
       m_PersistentCalls:
         m_Calls:
+        - m_Target: {fileID: 906956380}
+          m_MethodName: Listen
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 1
         - m_Target: {fileID: 1191139446}
           m_MethodName: Listen
           m_Mode: 0
@@ -604,6 +616,22 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 1
+    routers:
+    - path: /occupyshared_data
+      listeners:
+        m_PersistentCalls:
+          m_Calls:
+          - m_Target: {fileID: 1191139446}
+            m_MethodName: Listen
+            m_Mode: 0
+            m_Arguments:
+              m_ObjectArgument: {fileID: 0}
+              m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+              m_IntArgument: 0
+              m_FloatArgument: 0
+              m_StringArgument: 
+              m_BoolArgument: 0
+            m_CallState: 1
   settings:
     server: 127.0.0.1
 --- !u!1 &1968254156
@@ -641,9 +669,9 @@ MonoBehaviour:
     client: {fileID: 1191139446}
     redis: {fileID: 1766415192}
   tuner:
-    provider: 1
+    provider: 3
     server:
-      debug: 0
+      debug: 1
       occupy:
         lifeLimit: 10
         edgeDuration_x: 0.5
@@ -651,6 +679,7 @@ MonoBehaviour:
         EdgeDuration: {x: 0.5, y: 0.9}
     client:
       pip:
+        enabled: 1
         sizeScale: 0.2
     redis:
       server: 127.0.0.1
