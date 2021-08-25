@@ -12,7 +12,7 @@ using WeSyncSys.Extensions.TimeExt;
 
 namespace SphereOfInfluenceSys.App2 {
 
-	public class OccupyServer : OccupyBase {
+	public class RemoteOccupyServer : RemoteOccupyBase {
 
 		[SerializeField]
 		protected Events events = new Events();
@@ -41,10 +41,12 @@ namespace SphereOfInfluenceSys.App2 {
 				Send(sharing);
 			};
 		}
-		private void OnValidate() {
+		protected void OnValidate() {
 			workingDataValidator.Invalidate();
 		}
-		private void Update() {
+		protected override void Update() {
+			base.Update();
+
 			var currTick = TimeExtension.CurrTick;
 			var expiredTick = currTick - (1.2f * (10f + settings.occupy.lifeLimit)).ToTicks();
 			for (var i = 0; i < workingdata.regions.Count; ) {

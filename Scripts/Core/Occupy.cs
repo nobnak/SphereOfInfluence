@@ -4,6 +4,7 @@ using nobnak.Gist.Extensions.Texture2DExt;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core.Structures;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -87,11 +88,12 @@ namespace SphereOfInfluenceSys.Core {
 				tuner.occupy.edgeDuration_y = Mathf.Clamp01(1f - value.y);
 			}
 		}
+		public IList<Region> Regions { get => regions; }
 
-		public int Add(int id, Vector2 normPos, float life = -1f) {
-			var count = regions.Count;
-			life = (life >= 0f ? life : TimeExtension.CurrRelativeSeconds);
-			return Add(new Region(id, normPos, life));
+		public int Add(int id, Vector2 normPos, float birthTime = -1f) {
+			return Add((birthTime >= 0f) ?
+				new Region(id, normPos, birthTime) :
+				new Region(id, normPos));
 		}
 
 		public int Add(Region pi) {
@@ -233,7 +235,7 @@ namespace SphereOfInfluenceSys.Core {
 				this.birthTime = birthTime;
 			}
 			public Region(int id, Vector2 pos) 
-				: this(id, pos, TimeExtension.CurrRelativeSeconds) { }
+				: this(id, pos, Now) { }
 
 			#region interface
 
@@ -246,6 +248,10 @@ namespace SphereOfInfluenceSys.Core {
 			}
 			#endregion
 
+			#endregion
+
+			#region static
+			public static float Now { get => TimeExtension.CurrRelativeSeconds; }
 			#endregion
 		}
 		[System.Serializable]

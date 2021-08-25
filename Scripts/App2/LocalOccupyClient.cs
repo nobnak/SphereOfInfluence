@@ -1,7 +1,6 @@
-using CloudStructures;
-using CloudStructures.Structures;
 using nobnak.Gist;
 using nobnak.Gist.Cameras;
+using nobnak.Gist.Collection;
 using nobnak.Gist.Extensions.ScreenExt;
 using nobnak.Gist.Extensions.Texture2DExt;
 using nobnak.Gist.GPUBuffer;
@@ -9,14 +8,15 @@ using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core;
 using SphereOfInfluenceSys.Core.Structures;
 using System.Collections;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using WeSyncSys;
 
 namespace SphereOfInfluenceSys.App2 {
 
-	public class OccupyClient : OccupyBase {
+	[ExecuteAlways]
+	public class LocalOccupyClient : MonoBehaviour {
 
 		public const CameraEvent EVT_CAMCBUF = CameraEvent.AfterEverything;
 
@@ -26,8 +26,6 @@ namespace SphereOfInfluenceSys.App2 {
 		protected WeSyncExhibitor wesync;
 		[SerializeField]
 		protected Tuner tuner = new Tuner();
-		[SerializeField]
-		protected WorkingMem mem = new WorkingMem();
 
 		protected CameraData cameraData = default;
 		protected SharedData shared;
@@ -40,12 +38,23 @@ namespace SphereOfInfluenceSys.App2 {
 		protected AsyncCPUTexture<Vector4> idTexCpu = new AsyncCPUTexture<Vector4>();
 		protected Coroutine idTexReadbackCo;
 
-		#region unity
-		protected override void OnEnable() {
-			base.OnEnable();
+		protected ReusableIndexStorage occIdStorage;
+		protected HashSet<int> tmpRegIdSet;
+		protected Dictionary<int, int> occToRegIdMap;
+		protected Dictionary<int, ReusableIndexStorage.Token> regToOccIdMap;
+		protected List<Occupy.Region> regions = new List<Occupy.Region>();
 
+		#region unity
+		protected virtual void OnEnable() {
 			occupy = new Occupy();
 			pip = new PIPTexture();
+
+			tmpRegIdSet = new HashSet<int>();
+			occIdStorage = new ReusableIndexStorage();
+			occToRegIdMap = new Dictionary<int, int>();
+			regToOccIdMap = new Dictionary<int, ReusableIndexStorage.Token>();
+
+			regions.Clear();
 
 			validator.Reset();
 			validator.SetCheckers(() => cameraData.Equals(targetCam));
@@ -99,21 +108,6 @@ namespace SphereOfInfluenceSys.App2 {
 		#endregion
 
 		#region members
-		protected virtual void TaskGet() {
-			try {
-				ThrowIfRedisIsNotInitialized();
-				redisString
-					.GetAsync()
-					.ContinueWith(t => {
-						if (t.IsFaulted)
-							Debug.LogWarning(t.Exception);
-						else if (t.IsCompleted)
-							Listen(t.Result.Value);
-					}, mainScheduler);
-			} catch (System.Exception e) {
-				Debug.LogWarning(e);
-			}
-		}
 		private IEnumerator UpdateOccupation() {
 			while (true) {
 				yield return null;
@@ -121,18 +115,51 @@ namespace SphereOfInfluenceSys.App2 {
 				validator.Validate();
 				pip.Validate();
 
+				occupy.CurrTuner = tuner.occupy;
+				UpdateOccupyRegions();
+
 				if (wesync != null) {
 					var subspace = wesync.CurrSubspace;
-					if (subspace != default) {
-						occupy.CurrTuner = mem.occupy;
+					if (subspace != default)
 						occupy.Update(subspace, colorTex);
-					}
 				}
 
 				idTexCpu.Source = occupy.IdTex;
 				foreach (var __ in idTexCpu)
 					yield return null;
+
+				UpdateRegisterIdMap();
 			}
+		}
+
+		private void UpdateOccupyRegions() {
+			foreach (var r in regions) {
+				tmpRegIdSet.Remove(r.id);
+			}
+			foreach (var regId in tmpRegIdSet) {
+				if (regToOccIdMap.TryGetValue(regId, out var occId)) {
+					occId.Dispose();
+					regToOccIdMap.Remove(regId);
+				}
+			}
+			tmpRegIdSet.Clear();
+
+			foreach (var r in regions) {
+				tmpRegIdSet.Add(r.id);
+				if (!regToOccIdMap.ContainsKey(r.id)) {
+					var occId = occIdStorage.GetToken();
+					regToOccIdMap[r.id] = occId;
+				}
+			}
+
+			occupy.Clear();
+			foreach (var r in regions)
+				occupy.Add(regToOccIdMap[r.id], r.position, r.birthTime);
+		}
+		private void UpdateRegisterIdMap() {
+			occToRegIdMap.Clear();
+			foreach (var outerId in regToOccIdMap.Keys)
+				occToRegIdMap[regToOccIdMap[outerId]] = outerId;
 		}
 		#endregion
 
@@ -147,19 +174,15 @@ namespace SphereOfInfluenceSys.App2 {
 				validator.Invalidate();
 			}
 		}
-		public void Listen(RedisTransporter.RouteData route) {
-			if (OccupyServer.PATH == route.path)
-				TaskGet();
+		public IList<Occupy.Region> Regions {
+			get => regions;
 		}
-		public void Listen(SharedData shared) {
-			Debug.Log($"{GetType().Name} : Receive shared data. {shared}");
-			this.shared = shared;
-			mem.occupy.occupy = shared.occupy.DeepCopy();
-			occupy.Clear();
-			foreach (var r in shared.regions)
-				occupy.Add(r);
-			validator.Invalidate();
+
+		public int Sample(Vector2 uv) {
+			var occupyId = Mathf.RoundToInt(idTexCpu[uv].x);
+			return occToRegIdMap.TryGetValue(occupyId, out var sampleId) ? sampleId : -1;
 		}
+
 		public void ListenCamera(GameObject go) {
 			Debug.Log($"Update camera");
 			targetCam = go.GetComponent<Camera>();
@@ -176,9 +199,6 @@ namespace SphereOfInfluenceSys.App2 {
 		[System.Serializable]
 		public class Tuner {
 			public PIPTexture.Tuner pip = new PIPTexture.Tuner();
-		}
-		[System.Serializable]
-		public class WorkingMem {
 			public Occupy.Tuner occupy = new Occupy.Tuner();
 		}
 		#endregion

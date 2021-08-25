@@ -12,7 +12,7 @@ using WeSyncSys.Extensions.TimeExt;
 
 namespace SphereOfInfluenceSys.App2 {
 
-	public class OccupyBase : MonoBehaviour {
+	public class RemoteOccupyBase : MonoBehaviour {
 
 		public const string K_SharedData = "SharedData";
 		public const string PATH = "/occupyshared_data";
@@ -46,7 +46,7 @@ namespace SphereOfInfluenceSys.App2 {
 
 			connectionValidator.Reset();
 		}
-		private void Update() {
+		protected virtual void Update() {
 			connectionValidator.Validate();
 		}
 		#endregion

@@ -9,7 +9,7 @@ using UnityEngine;
 namespace SphereOfInfluenceSys.App2 {
 
 	[ExecuteAlways]
-	public class OccupyUI : AbstractExhibitor {
+	public class RemoteOccupyUI : AbstractExhibitor {
 
 		[SerializeField]
 		protected Linker linker = new Linker();
@@ -95,8 +95,8 @@ namespace SphereOfInfluenceSys.App2 {
 		#region definition
 		[System.Serializable]
 		public class Linker {
-			public OccupyServer server;
-			public OccupyClient client;
+			public RemoteOccupyServer server;
+			public RemoteOccupyClient client;
 			public RedisTransporter redis;
 		}
 		[System.Serializable]
@@ -110,8 +110,8 @@ namespace SphereOfInfluenceSys.App2 {
 
 			public ProviderFlags provider = ProviderFlags.Host;
 
-			public OccupyServer.Tuner server = new OccupyServer.Tuner();
-			public OccupyClient.Tuner client = new OccupyClient.Tuner();
+			public RemoteOccupyServer.Tuner server = new RemoteOccupyServer.Tuner();
+			public RemoteOccupyClient.Tuner client = new RemoteOccupyClient.Tuner();
 			public RedisTransporter.Tuner redis = new RedisTransporter.Tuner();
 		}
 		#endregion
