@@ -511,7 +511,7 @@ MonoBehaviour:
     occupy: {fileID: 1191139446}
   tuner:
     debugTuner:
-      enabled: 0
+      enabled: 1
     occupyTuner:
       pip:
         enabled: 1

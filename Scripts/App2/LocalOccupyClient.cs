@@ -6,6 +6,7 @@ using nobnak.Gist.Extensions.Texture2DExt;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core;
+using SphereOfInfluenceSys.Core.Interfaces;
 using SphereOfInfluenceSys.Core.Structures;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ using WeSyncSys;
 namespace SphereOfInfluenceSys.App2 {
 
 	[ExecuteAlways]
-	public class LocalOccupyClient : MonoBehaviour {
+	public class LocalOccupyClient : MonoBehaviour, ISampler {
 
 		public const CameraEvent EVT_CAMCBUF = CameraEvent.AfterEverything;
 
@@ -178,10 +179,20 @@ namespace SphereOfInfluenceSys.App2 {
 			get => regions;
 		}
 
-		public int Sample(Vector2 uv) {
-			var occupyId = Mathf.RoundToInt(idTexCpu[uv].x);
-			return occToRegIdMap.TryGetValue(occupyId, out var sampleId) ? sampleId : -1;
+		#region ISampler
+		public SampleResultCode TrySample(Vector2 uv, out int regId) {
+			regId = default;
+
+			var occId = Mathf.RoundToInt(idTexCpu[uv].x);
+			if (occId == -1)
+				return SampleResultCode.Error_InitialRegion;
+
+			var res = occToRegIdMap.TryGetValue(occId, out regId);
+			return (!res) ?
+				SampleResultCode.Error_CannnotConvertID :
+				SampleResultCode.OK_RegionFound;
 		}
+		#endregion
 
 		public void ListenCamera(GameObject go) {
 			Debug.Log($"Update camera");

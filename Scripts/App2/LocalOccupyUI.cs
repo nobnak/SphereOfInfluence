@@ -7,6 +7,7 @@ using nobnak.Gist.Exhibitor;
 using nobnak.Gist.Extensions.Array;
 using nobnak.Gist.Extensions.ScreenExt;
 using SphereOfInfluenceSys.Core;
+using SphereOfInfluenceSys.Core.Interfaces;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -53,6 +54,14 @@ namespace SphereOfInfluenceSys.App2 {
 					var r = new Occupy.Region(Time.frameCount, uv);
 					data.regions.Add(r);
 					validator.Invalidate();
+				}
+				if (Input.GetMouseButtonDown(1)) {
+					var uv = Input.mousePosition.UV();
+					var occ = linker.occupy;
+					if (occ != null) {
+						var res = occ.TrySample(uv, out var regId);
+						Debug.Log($"Sample : id={regId}, uv={uv}, res={res}");
+					}
 				}
 			}
 
