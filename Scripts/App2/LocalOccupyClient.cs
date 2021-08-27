@@ -180,6 +180,7 @@ namespace SphereOfInfluenceSys.App2 {
 		}
 
 		#region ISampler
+		public bool IsActive { get => isActiveAndEnabled; }
 		public SampleResultCode TrySample(Vector2 uv, out int regId) {
 			regId = default;
 
