@@ -54,6 +54,7 @@ namespace SphereOfInfluenceSys.App2 {
 					var r = new Occupy.Region(Time.frameCount, uv);
 					data.regions.Add(r);
 					validator.Invalidate();
+					Debug.Log($"Add region : {r}");
 				}
 				if (Input.GetMouseButtonDown(1)) {
 					var uv = Input.mousePosition.UV();

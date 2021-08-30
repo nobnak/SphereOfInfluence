@@ -6,6 +6,7 @@ using nobnak.Gist.Extensions.Texture2DExt;
 using nobnak.Gist.GPUBuffer;
 using nobnak.Gist.ObjectExt;
 using SphereOfInfluenceSys.Core;
+using SphereOfInfluenceSys.Core.Abstracts;
 using SphereOfInfluenceSys.Core.Interfaces;
 using SphereOfInfluenceSys.Core.Structures;
 using System.Collections;
@@ -17,7 +18,7 @@ using WeSyncSys;
 namespace SphereOfInfluenceSys.App2 {
 
 	[ExecuteAlways]
-	public class LocalOccupyClient : MonoBehaviour, ISampler {
+	public class LocalOccupyClient : AbstractOccupyClient {
 
 		public const CameraEvent EVT_CAMCBUF = CameraEvent.AfterEverything;
 
@@ -180,8 +181,7 @@ namespace SphereOfInfluenceSys.App2 {
 		}
 
 		#region ISampler
-		public bool IsActive { get => isActiveAndEnabled; }
-		public SampleResultCode TrySample(Vector2 uv, out int regId) {
+		public override SampleResultCode TrySample(Vector2 uv, out int regId) {
 			regId = default;
 
 			var occId = Mathf.RoundToInt(idTexCpu[uv].x);
