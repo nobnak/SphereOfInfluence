@@ -257,7 +257,7 @@ namespace SphereOfInfluenceSys.Core {
 		[System.Serializable]
 		public class Tuner {
 			public OccupyTuner occupy = new OccupyTuner();
-
+			[Tooltip("デバッグ出力の色数")]
 			public int debugColorSplit = 10;
 
 			public bool Valid() => occupy.Valid();

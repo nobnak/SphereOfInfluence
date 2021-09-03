@@ -34,10 +34,13 @@ namespace SphereOfInfluenceSys.Core.Structures {
 	[MessagePackObject(keyAsPropertyName: true)]
 	public class OccupyTuner {
 		[FieldOffset(0)]
+		[Tooltip("領域の寿命(sec)")]
 		public float lifeLimit = 10f;
 		[FieldOffset(4)]
+		[Tooltip("拡大時間の割合 [0.0-1.0]")]
 		public float edgeDuration_x = 0.5f;
 		[FieldOffset(8)]
+		[Tooltip("縮小開始時間 [0.0-1.0]")]
 		public float edgeDuration_y = 0.9f;
 
 		[IgnoreMember]
