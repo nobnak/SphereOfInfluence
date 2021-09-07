@@ -65,7 +65,7 @@ namespace SphereOfInfluenceSys.App2 {
 				if (targetCam == null)
 					return;
 
-				var size = targetCam.Size();
+				var size = TargetSize;
 				if (colorTex == null || colorTex.Size() != size) {
 					colorTex.DestroySelf();
 					colorTex = new RenderTexture(size.x, size.y, 0, RenderTextureFormat.ARGB32);
@@ -73,6 +73,7 @@ namespace SphereOfInfluenceSys.App2 {
 					colorTex.wrapMode = TextureWrapMode.Clamp;
 					colorTex.enableRandomWrite = true;
 					colorTex.Create();
+					Debug.Log($"Create color tex : size={colorTex.Size()}");
 				}
 
 				if (wesync != null)
@@ -86,6 +87,7 @@ namespace SphereOfInfluenceSys.App2 {
 
 			idTexReadbackCo = StartCoroutine(UpdateOccupation());
 		}
+
 		private void OnDisable() {
 			if (idTexReadbackCo != null) {
 				StopCoroutine(idTexReadbackCo);
@@ -110,6 +112,7 @@ namespace SphereOfInfluenceSys.App2 {
 		#endregion
 
 		#region members
+		private Vector2Int TargetSize => targetCam.Size().LOD(tuner.occupy.lod);
 		private IEnumerator UpdateOccupation() {
 			while (true) {
 				yield return null;

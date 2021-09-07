@@ -110,7 +110,7 @@ namespace SphereOfInfluenceSys.Core {
 			Camera targetCam = null) {
 			var t = TimeExtension.CurrRelativeSeconds;
 
-			var h = Screen.height;
+			var h = Screen.height.LOD(tuner.lod);
 			var screenAspect = space.localField.size.AspectRatio();
 			var screenSize = new Vector2Int(Mathf.RoundToInt(h * screenAspect), h);
 			if (colorTex != null)
@@ -123,7 +123,7 @@ namespace SphereOfInfluenceSys.Core {
 			SetCommonParams(space);
 			CheckIdTex(screenSize);
 
-			var dispatchSize = GetDispatchSize(screenSize);
+			var dispatchSize = GetDispatchSize(IdTex.Size());
 			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
 			cs.SetInt(P_Regions_Length, regions.Count);
 			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
@@ -131,6 +131,7 @@ namespace SphereOfInfluenceSys.Core {
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
 			if (colorTex != null) {
+				dispatchSize = GetDispatchSize(colorTex.Size());
 				cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / tuner.debugColorSplit, 0.13f, 0, 0));
 				cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
 				cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
@@ -144,7 +145,7 @@ namespace SphereOfInfluenceSys.Core {
 			if (screenSize.x < 4 || screenSize.y < 4) {
 				Debug.LogWarning($"Size too small : {screenSize}");
 			}
-			ScreenSize = screenSize;
+			ScreenSize = screenSize.LOD(tuner.lod);
 
 			SetCommonParams(SubSpace.Generate(screenSize));
 
@@ -194,6 +195,7 @@ namespace SphereOfInfluenceSys.Core {
 				IdTex.filterMode = FilterMode.Point;
 				IdTex.enableRandomWrite = true;
 				IdTex.Create();
+				Debug.Log($"Create IdTex : size={IdTex.Size()}");
 			}
 		}
 		#endregion
@@ -259,6 +261,8 @@ namespace SphereOfInfluenceSys.Core {
 			public OccupyTuner occupy = new OccupyTuner();
 			[Tooltip("デバッグ出力の色数")]
 			public int debugColorSplit = 10;
+			[Tooltip("LOD")]
+			public int lod = 2;
 
 			public bool Valid() => occupy.Valid();
 		}
