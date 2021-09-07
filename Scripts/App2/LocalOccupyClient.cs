@@ -184,14 +184,15 @@ namespace SphereOfInfluenceSys.App2 {
 		public override SampleResultCode TrySample(Vector2 uv, out int regId) {
 			regId = default;
 
+			if (!IsActive) return SampleResultCode.E_SystemNotActive;
+
 			var occId = Mathf.RoundToInt(idTexCpu[uv].x);
-			if (occId == -1)
-				return SampleResultCode.Error_InitialRegion;
+			if (occId == -1) return SampleResultCode.E_InitialRegion;
 
 			var res = occToRegIdMap.TryGetValue(occId, out regId);
-			return (!res) ?
-				SampleResultCode.Error_CannnotConvertID :
-				SampleResultCode.OK_RegionFound;
+			if (!res) return SampleResultCode.E_CannnotConvertID;
+			
+			return SampleResultCode.S_RegionFound;
 		}
 		#endregion
 
