@@ -65,7 +65,9 @@ namespace SphereOfInfluenceSys.App2 {
 				if (targetCam == null)
 					return;
 
-				var size = TargetSize;
+				occupy.CurrTuner = tuner.occupy;
+
+				var size = occupy.SetScreenSize(targetCam.Size());
 				if (colorTex == null || colorTex.Size() != size) {
 					colorTex.DestroySelf();
 					colorTex = new RenderTexture(size.x, size.y, 0, RenderTextureFormat.ARGB32);
@@ -112,7 +114,6 @@ namespace SphereOfInfluenceSys.App2 {
 		#endregion
 
 		#region members
-		private Vector2Int TargetSize => targetCam.Size().LOD(tuner.occupy.lod);
 		private IEnumerator UpdateOccupation() {
 			while (true) {
 				yield return null;
@@ -120,13 +121,14 @@ namespace SphereOfInfluenceSys.App2 {
 				validator.Validate();
 				pip.Validate();
 
-				occupy.CurrTuner = tuner.occupy;
 				UpdateOccupyRegions();
 
 				if (wesync != null) {
 					var subspace = wesync.CurrSubspace;
-					if (subspace != default)
-						occupy.Update(subspace, colorTex);
+					if (subspace != default) {
+						occupy.Update(subspace);
+						occupy.Visualize(colorTex);
+					}
 				}
 
 				idTexCpu.Source = occupy.IdTex;

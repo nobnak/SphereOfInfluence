@@ -54,7 +54,8 @@ namespace SphereOfInfluenceSys.App2 {
 				if (targetCam == null)
 					return;
 
-				var size = targetCam.Size();
+				occupy.CurrTuner = mem.occupy;
+				var size = occupy.SetScreenSize(targetCam.Size());
 				if (colorTex == null || colorTex.Size() != size) {
 					colorTex.DestroySelf();
 					colorTex = new RenderTexture(size.x, size.y, 0, RenderTextureFormat.ARGB32);
@@ -124,8 +125,8 @@ namespace SphereOfInfluenceSys.App2 {
 				if (wesync != null) {
 					var subspace = wesync.CurrSubspace;
 					if (subspace != default) {
-						occupy.CurrTuner = mem.occupy;
-						occupy.Update(subspace, colorTex);
+						occupy.Update(subspace);
+						occupy.Visualize(colorTex);
 					}
 				}
 

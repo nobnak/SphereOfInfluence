@@ -62,6 +62,7 @@ namespace SphereOfInfluenceSys.Core {
 		#endregion
 
 		public RenderTexture IdTex { get; protected set; }
+		public SubSpace CurrSubSpace { get; protected set; }
 
 		public Tuner CurrTuner {
 			get {
@@ -104,24 +105,14 @@ namespace SphereOfInfluenceSys.Core {
 		public void Clear() {
 			regions.Clear();
 		}
-		public Occupy Update(
-			SubSpace space,
-			RenderTexture colorTex = null,
-			Camera targetCam = null) {
+		public Vector2Int SetScreenSize(Vector2Int screen) {
+			return ScreenSize = screen.LOD(tuner.lod);
+		}
+		public Occupy Update(SubSpace space) {
 			var t = TimeExtension.CurrRelativeSeconds;
-
-			var h = Screen.height.LOD(tuner.lod);
-			var screenAspect = space.localField.size.AspectRatio();
-			var screenSize = new Vector2Int(Mathf.RoundToInt(h * screenAspect), h);
-			if (colorTex != null)
-				screenSize = colorTex.Size(); 
-			if (screenSize.x < 4 || screenSize.y < 4) {
-				Debug.LogWarning($"Size too small : {screenSize}");
-			}
-			ScreenSize = screenSize;
-
+			CurrSubSpace = space;
 			SetCommonParams(space);
-			CheckIdTex(screenSize);
+			CheckIdTex(ScreenSize);
 
 			var dispatchSize = GetDispatchSize(IdTex.Size());
 			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
@@ -130,13 +121,17 @@ namespace SphereOfInfluenceSys.Core {
 			cs.SetVector(PROP_LIFE_LIMIT, tuner.occupy.TemporalSetting);
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
-			if (colorTex != null) {
-				dispatchSize = GetDispatchSize(colorTex.Size());
-				cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / tuner.debugColorSplit, 0.13f, 0, 0));
-				cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
-				cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
-				cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
-			}
+			return this;
+		}
+		public Occupy Visualize(RenderTexture colorTex) {
+			SetCommonParams(CurrSubSpace);
+			CheckIdTex(ScreenSize);
+
+			var dispatchSize = GetDispatchSize(colorTex.Size());
+			cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / tuner.debugColorSplit, 0.13f, 0, 0));
+			cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
+			cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
+			cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
 			return this;
 		}
