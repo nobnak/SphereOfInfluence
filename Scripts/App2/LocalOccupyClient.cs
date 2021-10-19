@@ -29,7 +29,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[SerializeField]
 		protected Tuner tuner = new Tuner();
 
-		protected CameraData cameraData = default;
+		protected CameraData cameraData;
 		protected SharedData shared;
 
 		protected Validator validator = new Validator();
@@ -58,6 +58,7 @@ namespace SphereOfInfluenceSys.App2 {
 
 			regions.Clear();
 
+			cameraData = default;
 			validator.Reset();
 			validator.SetCheckers(() => cameraData.Equals(targetCam));
 			validator.Validation += () => {

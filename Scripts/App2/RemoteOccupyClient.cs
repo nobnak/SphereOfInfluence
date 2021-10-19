@@ -29,7 +29,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[SerializeField]
 		protected WorkingMem mem = new WorkingMem();
 
-		protected CameraData cameraData = default;
+		protected CameraData cameraData;
 		protected SharedData shared;
 
 		protected Validator validator = new Validator();
@@ -47,6 +47,7 @@ namespace SphereOfInfluenceSys.App2 {
 			occupy = new Occupy();
 			pip = new PIPTexture();
 
+			cameraData = default;
 			validator.Reset();
 			validator.SetCheckers(() => cameraData.Equals(targetCam));
 			validator.Validation += () => {
