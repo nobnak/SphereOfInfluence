@@ -189,6 +189,7 @@ namespace SphereOfInfluenceSys.Core {
 				IdTex.wrapMode = TextureWrapMode.Clamp;
 				IdTex.filterMode = FilterMode.Point;
 				IdTex.enableRandomWrite = true;
+				IdTex.hideFlags = HideFlags.DontSave;
 				IdTex.Create();
 				Debug.Log($"Create IdTex : size={IdTex.Size()}");
 			}

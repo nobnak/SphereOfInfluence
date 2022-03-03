@@ -75,6 +75,7 @@ namespace SphereOfInfluenceSys.App2 {
 					colorTex.filterMode = FilterMode.Point;
 					colorTex.wrapMode = TextureWrapMode.Clamp;
 					colorTex.enableRandomWrite = true;
+					colorTex.hideFlags = HideFlags.DontSave;
 					colorTex.Create();
 					Debug.Log($"Create color tex : size={colorTex.Size()}");
 				}

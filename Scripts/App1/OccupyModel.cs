@@ -139,6 +139,7 @@ namespace SphereOfInfluenceSys.App1 {
 				colorTex.enableRandomWrite = true;
 				colorTex.wrapMode = TextureWrapMode.Clamp;
 				colorTex.filterMode = FilterMode.Point;
+				colorTex.hideFlags = HideFlags.DontSave;
 				colorTex.Create();
 			}
 			Occupy.Visualize(colorTex, settings.clusters);
