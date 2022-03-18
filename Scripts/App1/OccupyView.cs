@@ -1,10 +1,8 @@
-using nobnak.Gist;
+using nobnak.Gist.GLTools;
 using nobnak.Gist.Layer2;
 using nobnak.Gist.Layer2.Extensions;
 using nobnak.Gist.Wrapper;
 using SphereOfInfluenceSys.Core;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace SphereOfInfluenceSys.App1 {
