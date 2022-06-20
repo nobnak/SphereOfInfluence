@@ -63,10 +63,10 @@ namespace SphereOfInfluenceSys.App2 {
 			validator.SetCheckers(() => cameraData.Equals(targetCam));
 			validator.Validation += () => {
 				cameraData = targetCam;
-				if (targetCam == null)
-					return;
+				if (targetCam == null) return;
 
-				occupy.CurrTuner = tuner.occupy;
+				CurrTuner = tuner;
+				if (!isActiveAndEnabled) return;
 
 				var size = occupy.SetScreenSize(targetCam.Size());
 				if (colorTex == null || colorTex.Size() != size) {
@@ -84,7 +84,6 @@ namespace SphereOfInfluenceSys.App2 {
 					Debug.Log($"{wesync.CurrSubspace}");
 
 				pip.TargetCam = targetCam;
-				pip.CurrTuner = tuner.pip;
 				pip.Clear();
 				pip.Add(colorTex);
 			};
@@ -117,10 +116,12 @@ namespace SphereOfInfluenceSys.App2 {
 
 		#region members
 		private IEnumerator UpdateOccupation() {
-			while (true) {
+			while (isActiveAndEnabled) {
 				yield return null;
 
 				validator.Validate();
+				if (!isActiveAndEnabled) yield break;
+
 				pip.Validate();
 
 				UpdateOccupyRegions();
@@ -176,10 +177,16 @@ namespace SphereOfInfluenceSys.App2 {
 		public Tuner CurrTuner {
 			get {
 				validator.Validate();
-				return tuner;
+				tuner.enabled = enabled;
+				if (occupy != null) tuner.occupy = occupy.CurrTuner;
+				if (pip != null) tuner.pip = pip.CurrTuner;
+				return tuner.DeepCopy();
 			}
 			set {
-				tuner = value.DeepCopy();
+				tuner = value;
+				enabled = tuner.enabled;
+				if (occupy != null) occupy.CurrTuner = tuner.occupy;
+				if (pip != null) pip.CurrTuner = tuner.pip;
 				validator.Invalidate();
 			}
 		}
@@ -218,6 +225,7 @@ namespace SphereOfInfluenceSys.App2 {
 		#region definition
 		[System.Serializable]
 		public class Tuner {
+			public bool enabled = true;
 			public PIPTexture.Tuner pip = new PIPTexture.Tuner();
 			public Occupy.Tuner occupy = new Occupy.Tuner();
 		}

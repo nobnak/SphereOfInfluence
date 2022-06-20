@@ -70,7 +70,7 @@ namespace SphereOfInfluenceSys.Core {
 			}
 			set {
 				if (value.Valid())
-					tuner = value.DeepCopy();
+					tuner = value;
 			}
 		}
 		[System.Obsolete]
