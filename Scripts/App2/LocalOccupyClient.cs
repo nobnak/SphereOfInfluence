@@ -80,9 +80,6 @@ namespace SphereOfInfluenceSys.App2 {
 					Debug.Log($"Create color tex : size={colorTex.Size()}");
 				}
 
-				if (wesync != null)
-					Debug.Log($"{wesync.CurrSubspace}");
-
 				pip.TargetCam = targetCam;
 				pip.Clear();
 				pip.Add(colorTex);
