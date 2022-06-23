@@ -2,7 +2,7 @@ using MessagePack;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
-using WeSyncSys.Extensions.TimeExt;
+using WeSyncSys.Extensions;
 using static SphereOfInfluenceSys.Core.Occupy;
 
 namespace SphereOfInfluenceSys.Core.Structures {

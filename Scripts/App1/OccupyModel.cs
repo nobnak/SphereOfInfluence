@@ -10,7 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Events;
-using WeSyncSys.Extensions.TimeExt;
+using WeSyncSys.Extensions;
 
 namespace SphereOfInfluenceSys.App1 {
 
