@@ -1,10 +1,12 @@
 {
     "name": "SphereOfInfluence",
+    "rootNamespace": "",
     "references": [
-        "GUID:1660ea5965cce314f9c58a7eb6259838",
-        "GUID:ac696d4660754ac459c197e9f2bc703a",
-        "GUID:cbe37cce2ae95ea408b49c0915635b68",
-        "GUID:04baea1731b1b374d91088266938baf1"
+        "nobnak.Gist",
+        "CloudStructureForUnity",
+        "WeSync",
+        "WeSync-Examples",
+        "ModelDrivenGUI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
