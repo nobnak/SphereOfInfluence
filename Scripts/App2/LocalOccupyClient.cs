@@ -174,14 +174,12 @@ namespace SphereOfInfluenceSys.App2 {
 		public Tuner CurrTuner {
 			get {
 				validator.Validate();
-				tuner.enabled = enabled;
 				if (occupy != null) tuner.occupy = occupy.CurrTuner;
 				if (pip != null) tuner.pip = pip.CurrTuner;
 				return tuner.DeepCopy();
 			}
 			set {
 				tuner = value;
-				enabled = tuner.enabled;
 				if (occupy != null) occupy.CurrTuner = tuner.occupy;
 				if (pip != null) pip.CurrTuner = tuner.pip;
 				validator.Invalidate();
@@ -208,12 +206,10 @@ namespace SphereOfInfluenceSys.App2 {
 		#endregion
 
 		public void ListenCamera(GameObject go) {
-			Debug.Log($"Update camera");
 			targetCam = go.GetComponent<Camera>();
 			validator.Invalidate();
 		}
 		public void Listen(WeSyncExhibitor wesync) {
-			Debug.Log($"Update WeSync");
 			this.wesync = wesync;
 			validator.Invalidate();
 		}
@@ -222,7 +218,6 @@ namespace SphereOfInfluenceSys.App2 {
 		#region definition
 		[System.Serializable]
 		public class Tuner {
-			public bool enabled = true;
 			public PIPTexture.Tuner pip = new PIPTexture.Tuner();
 			public Occupy.Tuner occupy = new Occupy.Tuner();
 		}
