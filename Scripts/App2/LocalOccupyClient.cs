@@ -12,6 +12,7 @@ using SphereOfInfluenceSys.Core.Structures;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 using WeSyncSys;
 
@@ -21,6 +22,8 @@ namespace SphereOfInfluenceSys.App2 {
 	public class LocalOccupyClient : AbstractOccupyClient {
 
 		public const CameraEvent EVT_CAMCBUF = CameraEvent.AfterEverything;
+
+		public Events events = new Events();
 
 		[SerializeField]
 		protected Camera targetCam;
@@ -35,7 +38,6 @@ namespace SphereOfInfluenceSys.App2 {
 		protected Validator validator = new Validator();
 		protected Occupy occupy;
 		protected RenderTexture colorTex;
-		protected PIPTexture pip;
 
 		protected AsyncCPUTexture<Vector4> idTexCpu = new AsyncCPUTexture<Vector4>();
 		protected Coroutine idTexReadbackCo;
@@ -49,7 +51,6 @@ namespace SphereOfInfluenceSys.App2 {
 		#region unity
 		protected virtual void OnEnable() {
 			occupy = new Occupy();
-			pip = new PIPTexture();
 
 			tmpRegIdSet = new HashSet<int>();
 			occIdStorage = new ReusableIndexStorage();
@@ -80,9 +81,7 @@ namespace SphereOfInfluenceSys.App2 {
 					Debug.Log($"Create color tex : size={colorTex.Size()}");
 				}
 
-				pip.TargetCam = targetCam;
-				pip.Clear();
-				pip.Add(colorTex);
+				events.ColorTexOnCreate?.Invoke(colorTex);
 			};
 
 			idTexReadbackCo = StartCoroutine(UpdateOccupation());
@@ -101,10 +100,6 @@ namespace SphereOfInfluenceSys.App2 {
 				colorTex.DestroySelf();
 				colorTex = null;
 			}
-			if (pip != null) {
-				pip.Dispose();
-				pip = null;
-			}
 		}
 		private void OnValidate() {
 			validator.Invalidate();
@@ -118,8 +113,6 @@ namespace SphereOfInfluenceSys.App2 {
 
 				validator.Validate();
 				if (!isActiveAndEnabled) yield break;
-
-				pip.Validate();
 
 				UpdateOccupyRegions();
 
@@ -175,13 +168,11 @@ namespace SphereOfInfluenceSys.App2 {
 			get {
 				validator.Validate();
 				if (occupy != null) tuner.occupy = occupy.CurrTuner;
-				if (pip != null) tuner.pip = pip.CurrTuner;
 				return tuner.DeepCopy();
 			}
 			set {
 				tuner = value;
 				if (occupy != null) occupy.CurrTuner = tuner.occupy;
-				if (pip != null) pip.CurrTuner = tuner.pip;
 				validator.Invalidate();
 			}
 		}
@@ -217,8 +208,14 @@ namespace SphereOfInfluenceSys.App2 {
 
 		#region definition
 		[System.Serializable]
+		public class Events {
+			public TextureEvent ColorTexOnCreate = new TextureEvent();
+
+			[System.Serializable]
+			public class TextureEvent : UnityEvent<Texture> { }
+		}
+		[System.Serializable]
 		public class Tuner {
-			public PIPTexture.Tuner pip = new PIPTexture.Tuner();
 			public Occupy.Tuner occupy = new Occupy.Tuner();
 		}
 		#endregion
