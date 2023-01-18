@@ -186,11 +186,11 @@ namespace SphereOfInfluenceSys.Core {
 
 		#region classes
 		[System.Serializable]
-		[StructLayout(LayoutKind.Sequential)]
+		[StructLayout(LayoutKind.Sequential, Pack = 4)]
 		public struct Region {
-			public readonly int id;
-			public readonly float birthTime;
-			public readonly Vector2 position;
+			public int id;
+			public float birthTime;
+			public Vector2 position;
 
 			public Region(int id, Vector2 pos, float birthTime) {
 				this.id = id;
@@ -214,7 +214,9 @@ namespace SphereOfInfluenceSys.Core {
 			#endregion
 
 			#region static
-			public static float Now { get => TimeExtension.CurrRelativeSeconds; }
+			//public static float Now => TimeExtension.CurrRelativeSeconds;
+			public static float Now => Time.time;
+			//public static float Now => TimeExtension.CurrRelativeMinutes;
 			#endregion
 		}
 		[System.Serializable]

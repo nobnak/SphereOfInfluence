@@ -54,7 +54,7 @@ namespace SphereOfInfluenceSys.Core.Structures {
 			&& edgeDuration_y > edgeDuration_x
 			&& edgeDuration_y <= 1f;
 		public Vector4 TemporalSetting =>
-			new Vector4(edgeDuration_x, edgeDuration_y, TimeExtension.CurrRelativeSeconds, 1f / lifeLimit);
+			new Vector4(edgeDuration_x, edgeDuration_y, Region.Now, 1f / lifeLimit);
 		#endregion
 	}
 
