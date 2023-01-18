@@ -10,6 +10,7 @@ using SphereOfInfluenceSys.Core;
 using SphereOfInfluenceSys.Core.Interfaces;
 using System.Collections.Generic;
 using UnityEngine;
+using WeSyncSys;
 
 namespace SphereOfInfluenceSys.App2 {
 
@@ -51,7 +52,8 @@ namespace SphereOfInfluenceSys.App2 {
 			if (tuner.debugTuner.enabled) {
 				if (Input.GetMouseButtonDown(0)) {
 					var uv = Input.mousePosition.UV();
-					var r = new Occupy.Region(Time.frameCount, uv);
+					var pos = linker.wesync.Space.uv2wpos(uv);
+					var r = new Occupy.Region(Time.frameCount, pos);
 					data.regions.Add(r);
 					validator.Invalidate();
 					Debug.Log($"Add region : {r}");
@@ -124,6 +126,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[System.Serializable]
 		public class Linker {
 			public LocalOccupyClient occupy;
+			public WeSyncExhibitor wesync;
 		}
 
 		[System.Serializable]

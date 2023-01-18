@@ -47,7 +47,7 @@ void CalcSoI (uint3 dtid : SV_DispatchThreadID) {
 
 	for (uint i = 0; i < _Regions_Length; i++) {
 		Region reg = _Regions[i];
-		float2 pos = PosFromGlobalUV(reg.position);
+		float2 pos = reg.position;
 		float birthTime = reg.birthTime;
 
 		float dist = distance(pos, center);

@@ -91,10 +91,10 @@ namespace SphereOfInfluenceSys.Core {
 		}
 		public IList<Region> Regions { get => regions; }
 
-		public int Add(int id, Vector2 normPos, float birthTime = -1f) {
+		public int Add(int id, Vector2 pos, float birthTime = -1f) {
 			return Add((birthTime >= 0f) ?
-				new Region(id, normPos, birthTime) :
-				new Region(id, normPos));
+				new Region(id, pos, birthTime) :
+				new Region(id, pos));
 		}
 
 		public int Add(Region pi) {
@@ -109,7 +109,6 @@ namespace SphereOfInfluenceSys.Core {
 			return ScreenSize = screen.LOD(tuner.lod);
 		}
 		public Occupy Update(SubSpace space) {
-			var t = TimeExtension.CurrRelativeSeconds;
 			CurrSubSpace = space;
 			SetCommonParams(space);
 			CheckIdTex(ScreenSize);
@@ -134,40 +133,6 @@ namespace SphereOfInfluenceSys.Core {
 			cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
 			return this;
-		}
-		[System.Obsolete]
-		public void Update(Vector2Int screenSize) {
-			if (screenSize.x < 4 || screenSize.y < 4) {
-				Debug.LogWarning($"Size too small : {screenSize}");
-			}
-			ScreenSize = screenSize.LOD(tuner.lod);
-
-			SetCommonParams(SubSpace.Generate(screenSize));
-
-			CheckIdTex(screenSize);
-			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
-
-			cs.SetInt(P_Regions_Length, regions.Count);
-			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
-
-			var t = TimeExtension.CurrRelativeSeconds;
-			cs.SetVector(PROP_LIFE_LIMIT, tuner.occupy.TemporalSetting);
-
-			var dispatchSize = GetDispatchSize(screenSize);
-			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
-		}
-		[System.Obsolete]
-		public void Visualize(RenderTexture colorTex, int clusters = 10, float offset = 0.5f) {
-			var size = colorTex.Size();
-			SetCommonParams(SubSpace.Generate(size));
-
-			cs.SetVector(PROP_COLOR_PARAMS, new Vector4(1f / clusters, offset, 0, 0));
-
-			cs.SetTexture(ID_ColorOfId, P_IdTexR, IdTex);
-			cs.SetTexture(ID_ColorOfId, P_ColorTex, colorTex);
-
-			var dispatchSize = GetDispatchSize(ScreenSize);
-			cs.Dispatch(ID_ColorOfId, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 		}
 		#endregion
 
