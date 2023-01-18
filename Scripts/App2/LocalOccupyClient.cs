@@ -121,6 +121,7 @@ namespace SphereOfInfluenceSys.App2 {
 					if (subspace != default) {
 						occupy.Update(subspace);
 						occupy.Visualize(colorTex);
+						events.IdTexOnUpdate?.Invoke(occupy.IdTex);
 					}
 				}
 
@@ -210,6 +211,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[System.Serializable]
 		public class Events {
 			public TextureEvent ColorTexOnCreate = new TextureEvent();
+			public TextureEvent IdTexOnUpdate = new TextureEvent();
 
 			[System.Serializable]
 			public class TextureEvent : UnityEvent<Texture> { }
