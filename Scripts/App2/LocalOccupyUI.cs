@@ -7,10 +7,10 @@ using nobnak.Gist.Exhibitor;
 using nobnak.Gist.Extensions.Array;
 using nobnak.Gist.Extensions.ScreenExt;
 using SphereOfInfluenceSys.Core;
-using SphereOfInfluenceSys.Core.Interfaces;
 using System.Collections.Generic;
 using UnityEngine;
 using WeSyncSys;
+using WeSyncSys.Extensions;
 
 namespace SphereOfInfluenceSys.App2 {
 
@@ -38,7 +38,7 @@ namespace SphereOfInfluenceSys.App2 {
 			validator.Invalidate();
 		}
 		private void Update() {
-			var tlimit = Occupy.Region.Now - tuner.occupyTuner.occupy.occupy.lifeLimit - 1f;
+			var tlimit = Occupy.Region.NowComp - (tuner.occupyTuner.occupy.occupy.lifeLimit + 1f).ToCompact();
 			for (var i = 0; i < data.regions.Count;) {
 				var r = data.regions[i];
 				if (r.birthTime < tlimit) {

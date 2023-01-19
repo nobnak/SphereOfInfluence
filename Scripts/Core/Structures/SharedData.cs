@@ -53,8 +53,8 @@ namespace SphereOfInfluenceSys.Core.Structures {
 			edgeDuration_x >= 0f
 			&& edgeDuration_y > edgeDuration_x
 			&& edgeDuration_y <= 1f;
-		public Vector4 TemporalSetting =>
-			new Vector4(edgeDuration_x, edgeDuration_y, Region.Now, 1f / lifeLimit);
+		public Vector4 TemporalSettingComp =>
+			new Vector4(edgeDuration_x, edgeDuration_y, Region.NowComp, 1f / lifeLimit.ToCompact());
 		#endregion
 	}
 
@@ -107,7 +107,7 @@ namespace SphereOfInfluenceSys.Core.Structures {
 			return new Region(
 				hires.id,
 				hires.Position,
-				hires.tick.RelativeSeconds());
+				hires.tick.RelativeMinutes());
 		}
 		public static explicit operator NetworkRegion(Region r) {
 			return new NetworkRegion(

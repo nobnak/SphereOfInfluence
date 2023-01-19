@@ -117,7 +117,7 @@ namespace SphereOfInfluenceSys.Core {
 			cs.SetTexture(ID_CalcOfSoI, P_IdTex, IdTex);
 			cs.SetInt(P_Regions_Length, regions.Count);
 			cs.SetBuffer(ID_CalcOfSoI, P_Regions, regions);
-			cs.SetVector(PROP_LIFE_LIMIT, tuner.occupy.TemporalSetting);
+			cs.SetVector(PROP_LIFE_LIMIT, tuner.occupy.TemporalSettingComp);
 			cs.Dispatch(ID_CalcOfSoI, dispatchSize.x, dispatchSize.y, dispatchSize.z);
 
 			return this;
@@ -198,7 +198,7 @@ namespace SphereOfInfluenceSys.Core {
 				this.birthTime = birthTime;
 			}
 			public Region(int id, Vector2 pos) 
-				: this(id, pos, Now) { }
+				: this(id, pos, NowComp) { }
 
 			#region interface
 
@@ -214,9 +214,11 @@ namespace SphereOfInfluenceSys.Core {
 			#endregion
 
 			#region static
-			//public static float Now => TimeExtension.CurrRelativeSeconds;
-			public static float Now => Time.time;
-			//public static float Now => TimeExtension.CurrRelativeMinutes;
+#if true
+			public static float NowComp => TimeExtension.CurrRelSecondsComp;
+#else
+			public static float NowComp => (float)(Time.timeAsDouble  * TimeExtension.COMPACT_SEC);
+#endif
 			#endregion
 		}
 		[System.Serializable]
@@ -229,6 +231,6 @@ namespace SphereOfInfluenceSys.Core {
 
 			public bool Valid() => occupy.Valid();
 		}
-		#endregion
+#endregion
 	}
 }
