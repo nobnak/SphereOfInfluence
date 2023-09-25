@@ -201,10 +201,6 @@ namespace SphereOfInfluenceSys.App2 {
 			targetCam = go.GetComponent<Camera>();
 			validator.Invalidate();
 		}
-		public void Listen(WeSyncExhibitor wesync) {
-			this.wesync = wesync;
-			validator.Invalidate();
-		}
 		#endregion
 
 		#region definition
