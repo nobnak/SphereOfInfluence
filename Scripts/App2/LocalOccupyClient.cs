@@ -28,7 +28,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[SerializeField]
 		protected Camera targetCam;
 		[SerializeField]
-		protected WeSyncExhibitor wesync;
+		protected WeSyncBase wesync;
 		[SerializeField]
 		protected Tuner tuner = new Tuner();
 
