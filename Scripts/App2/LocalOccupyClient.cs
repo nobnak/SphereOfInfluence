@@ -28,7 +28,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[SerializeField]
 		protected Camera targetCam;
 		[SerializeField]
-		protected WeSyncExhibitor wesync;
+		protected WeSyncBase wesync;
 		[SerializeField]
 		protected Tuner tuner = new Tuner();
 
@@ -201,7 +201,7 @@ namespace SphereOfInfluenceSys.App2 {
 			targetCam = go.GetComponent<Camera>();
 			validator.Invalidate();
 		}
-		public void Listen(WeSyncExhibitor wesync) {
+		public void Listen(WeSyncBase wesync) {
 			this.wesync = wesync;
 			validator.Invalidate();
 		}

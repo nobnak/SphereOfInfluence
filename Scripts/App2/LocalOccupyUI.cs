@@ -126,7 +126,7 @@ namespace SphereOfInfluenceSys.App2 {
 		[System.Serializable]
 		public class Linker {
 			public LocalOccupyClient occupy;
-			public WeSyncExhibitor wesync;
+			public WeSyncBase wesync;
 		}
 
 		[System.Serializable]
